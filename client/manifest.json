@@ -1,0 +1,24 @@
+{
+  "name": "Merchants of Eldora 3D",
+  "short_name": "Eldora 3D",
+  "description": "Catan Seafarers 3D Multiplayer Game",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#1a5b8c",
+  "theme_color": "#0d2847",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/assets/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

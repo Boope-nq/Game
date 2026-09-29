@@ -2176,6 +2176,38 @@ function setupUIEvents() {
         rModal?.classList.remove('hidden');
     });
 
+    // Menu Item: Fullscreen Toggle & Mobile Guidance
+    const menuBtnFullscreen = document.getElementById('menu-btn-fullscreen');
+    menuBtnFullscreen?.addEventListener('click', () => {
+        gameMenuDropdown?.classList.add('hidden');
+        const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+        if (!isFullscreen) {
+            const el = document.documentElement;
+            if (el.requestFullscreen) {
+                el.requestFullscreen().catch(() => showIosFullscreenModal());
+            } else if (el.webkitRequestFullscreen) {
+                el.webkitRequestFullscreen();
+            } else {
+                showIosFullscreenModal();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        }
+    });
+
+    function showIosFullscreenModal() {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        if (isIOS) {
+            alert("📱 HƯỚNG DẪN CHƠI TOÀN MÀN HÌNH TRÊN IPHONE:\n\n1. Nếu bạn đang mở link trong Zalo/Messenger: Hãy bấm biểu tượng La Bàn 🧭 ở góc dưới bên phải để MỞ BẰNG SAFARI.\n\n2. Trong Safari: Bấm nút Chia Sẻ (biểu tượng ô vuông có mũi tên lên ⎋) ở thanh công cụ dưới -> Chọn 'Thêm vào Màn hình chính' (Add to Home Screen).\n\n3. Trở về màn hình chính của iPhone và mở icon Eldora 3D: Game sẽ chạy TRÀN VIỀN 100% không còn thanh địa chỉ như ứng dụng thực thụ!");
+        } else {
+            alert("Vui lòng sử dụng tính năng 'Toàn màn hình' hoặc 'Thêm vào màn hình chính' của trình duyệt để có trải nghiệm tốt nhất!");
+        }
+    }
+
     // Menu Item: Leave Room
     menuBtnLeave?.addEventListener('click', async () => {
         gameMenuDropdown?.classList.add('hidden');

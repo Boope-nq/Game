@@ -1259,7 +1259,7 @@
   /* Phase indicator - compact & safely ABOVE the bottom HUD, never overlapping cards */
   .phase-indicator {
     top: auto !important;
-    bottom: calc(138px + env(safe-area-inset-bottom, 0px)) !important;
+    bottom: calc(205px + env(safe-area-inset-bottom, 0px)) !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
     padding: 2px 8px !important;
@@ -1304,7 +1304,7 @@
 
   /* Dice area - positioned safely above phase indicator */
   .dice-area {
-    bottom: calc(180px + env(safe-area-inset-bottom, 0px)) !important;
+    bottom: calc(265px + env(safe-area-inset-bottom, 0px)) !important;
     right: 8px !important;
     gap: 3px !important;
     z-index: 25 !important;
@@ -1637,6 +1637,14 @@
     padding: 3px 8px !important;
     min-height: 38px !important;
     height: 38px !important;
+  }
+
+  .phase-indicator {
+    bottom: calc(205px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .dice-area {
+    bottom: calc(265px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 

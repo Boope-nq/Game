@@ -9,9 +9,12 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 8px 24px;
+    padding-top: calc(8px + env(safe-area-inset-top, 0px));
+    padding-left: max(24px, env(safe-area-inset-left, 0px));
+    padding-right: max(24px, env(safe-area-inset-right, 0px));
+    height: calc(68px + env(safe-area-inset-top, 0px));
     background: linear-gradient(90deg, #39A7FF 0%, #2492eb 50%, #39A7FF 100%);
     border-bottom: 2.5px solid #FFEED9;
-    height: 68px;
     box-sizing: border-box;
     box-shadow: 0 4px 18px rgba(57, 167, 255, 0.3);
     z-index: 10;

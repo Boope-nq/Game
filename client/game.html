@@ -78,6 +78,10 @@
             justify-content: space-between;
             align-items: center;
             padding: 6px 18px;
+            padding-top: calc(6px + env(safe-area-inset-top, 0px));
+            padding-left: max(18px, env(safe-area-inset-left, 0px));
+            padding-right: max(18px, env(safe-area-inset-right, 0px));
+            height: calc(48px + env(safe-area-inset-top, 0px));
             background: linear-gradient(90deg, rgba(25, 95, 155, 0.94), rgba(45, 130, 195, 0.94));
             border-bottom: 2px solid rgba(255, 238, 217, 0.45);
             backdrop-filter: blur(8px);
@@ -85,7 +89,6 @@
             position: relative;
             z-index: 900;
             overflow: visible;
-            height: 48px;
             box-sizing: border-box;
         }
 

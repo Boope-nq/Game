@@ -1,0 +1,2169 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "testplayer",
+      "email": "test@catan.com",
+      "password": "$2a$10$spbnjAdEFalTCLM5o7z2SePdlsqpl1cMrpne6hRrjWd9RMDO0tHyy",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T10:26:23.625Z",
+      "last_seen": "2026-09-26T10:26:23.625Z"
+    },
+    {
+      "id": 2,
+      "username": "nqkha3009",
+      "email": "nqkha.3009@gmail.com",
+      "password": "$2a$10$fuN0hmJJM.Sxis970DYgZeGP6uiRUsOYNObJP59UK2D0UVVRfuVCa",
+      "avatar": "🦊",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T10:29:06.463Z",
+      "last_seen": "2026-09-29T00:52:48.280Z"
+    },
+    {
+      "id": 3,
+      "username": "hello",
+      "email": "nqkqqha.3009@gmail.com",
+      "password": "$2a$10$Llm8w5GZcWIuz61uU05qN.IrP9dUV6Wv82.bgtHgOtn48V7NsxR7G",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T10:29:57.683Z",
+      "last_seen": "2026-09-28T13:01:00.048Z"
+    },
+    {
+      "id": 4,
+      "username": "userA6301",
+      "email": "a6301@test.com",
+      "password": "$2a$10$1ykJvQNFAmE3kbkJcpnHCuOcAzbJ6mtK/swhWbTkooolwG.17MojC",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T11:00:59.684Z",
+      "last_seen": "2026-09-26T11:00:59.684Z"
+    },
+    {
+      "id": 5,
+      "username": "userB6301",
+      "email": "b6301@test.com",
+      "password": "$2a$10$gSc.sFsIssW2d1dU8uu9zunl6sSnEWxs2fVqOhwKg37Gd0Pmbn8fG",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T11:00:59.760Z",
+      "last_seen": "2026-09-26T11:00:59.760Z"
+    },
+    {
+      "id": 6,
+      "username": "captain_jack",
+      "email": "jack@catan.com",
+      "password": "$2a$10$Qt01Lqtf2n1BjgcLC7w1GO86KcHccST03oPE88lIJIAurGHvpcSE6",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T11:31:27.867Z",
+      "last_seen": "2026-09-29T00:49:28.828Z"
+    },
+    {
+      "id": 7,
+      "username": "sailor_morgan",
+      "email": "morgan@catan.com",
+      "password": "$2a$10$JGCmwBJKE5qewCQBGBhwQO2ZzDmoBYVdMaEljFj2stEkjufK9gBWm",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T11:31:45.508Z",
+      "last_seen": "2026-09-29T00:49:28.769Z"
+    },
+    {
+      "id": 8,
+      "username": "navigator_drake",
+      "email": "drake@catan.com",
+      "password": "$2a$10$6q5NWmT9adsxqJ01T/UvR.ZBisC9wrKO3zmjGHet8zXKmB/ZkHOGO",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T11:31:47.092Z",
+      "last_seen": "2026-09-29T00:49:28.708Z"
+    },
+    {
+      "id": 9,
+      "username": "admiral_nelson",
+      "email": "nelson@catan.com",
+      "password": "$2a$10$mvW7EkC2ETy.Vh5b/xODx.2UnMjmFjcSW0IoCySRGe9EGhUucVg2m",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T11:31:48.743Z",
+      "last_seen": "2026-09-29T00:49:28.838Z"
+    },
+    {
+      "id": 10,
+      "username": "rule_tester_7871",
+      "email": "rule_tester_7871@test.com",
+      "password": "$2a$10$QQSgqpFv6ww9pcm6U5BYR..l1cMAzBEv6nacHCN6a/nC3RHDlv3GG",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T15:21:50.356Z",
+      "last_seen": "2026-09-26T15:21:55.802Z"
+    },
+    {
+      "id": 11,
+      "username": "tut_tester_7013",
+      "email": "tut_tester_7013@test.com",
+      "password": "$2a$10$KVsDJI/RZl1IJMmKM0UHZuC64G4BtYAuI6TBs2BdF8m6jneg7sYaq",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T15:29:59.048Z",
+      "last_seen": "2026-09-26T15:30:12.515Z"
+    },
+    {
+      "id": 12,
+      "username": "tut_tester_4001",
+      "email": "tut_tester_4001@test.com",
+      "password": "$2a$10$lzkk2l./k4T9t23O4u0kvu.WlECL4ldo5cY1ihmawfJTwYT.vpg8m",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T15:32:41.306Z",
+      "last_seen": "2026-09-26T15:32:55.905Z"
+    },
+    {
+      "id": 13,
+      "username": "tut_tester_1484",
+      "email": "tut_tester_1484@test.com",
+      "password": "$2a$10$i2ebhlpbdrhIiPq5hOB7r.IIj3EQOBdrpVEXH8K2akKsj1COcUyUu",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T15:33:38.728Z",
+      "last_seen": "2026-09-26T15:33:53.387Z"
+    },
+    {
+      "id": 14,
+      "username": "tutuser_3586",
+      "email": "tutuser_3586@example.com",
+      "password": "$2a$10$J7eMG3qTLWg51bTrOI6vfOblPvk2SuaUipMxvXQczwIyLNiIqcHUK",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T15:43:45.639Z",
+      "last_seen": "2026-09-26T15:44:15.769Z"
+    },
+    {
+      "id": 15,
+      "username": "tut_4756",
+      "email": "tut_4756@example.com",
+      "password": "$2a$10$qoBodZwK6yIoCaUsi89jR.wXH3IUsxBmPwUYAgK4./Slp9Vtxe2oG",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T15:44:25.728Z",
+      "last_seen": "2026-09-26T15:44:29.398Z"
+    },
+    {
+      "id": 16,
+      "username": "tut_9820",
+      "email": "tut_9820@example.com",
+      "password": "$2a$10$ww6kbhjkTyhYli3oPMPY0e2xQkncIBu5L8Dyx9qD9p.95llHk7VGm",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T15:44:52.334Z",
+      "last_seen": "2026-09-26T15:45:01.384Z"
+    },
+    {
+      "id": 17,
+      "username": "ThuyenTruong_3574",
+      "email": "ThuyenTruong_3574@eldora.sea",
+      "password": "$2a$10$b56hlLFK9P8fpi2WbPpdYOk/uyV5JdTSZIjBrZa7w4SLVkT/abOna",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T16:51:49.482Z",
+      "last_seen": "2026-09-26T16:51:58.278Z"
+    },
+    {
+      "id": 18,
+      "username": "ThuyenTruong_3313",
+      "email": "ThuyenTruong_3313@eldora.sea",
+      "password": "$2a$10$olGwJow.mn43AsGmju1HtuhjU3zvgBDKgw8bTkcnZGPiBuIuszCCK",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T16:53:23.426Z",
+      "last_seen": "2026-09-26T16:53:34.185Z"
+    },
+    {
+      "id": 19,
+      "username": "ThuyenTruong_5708",
+      "email": "ThuyenTruong_5708@eldora.sea",
+      "password": "$2a$10$bVYYnaeJvubPjZWa63iQlOrqimFk4RVIRGPn4nUwsTWFh0Ag11pZi",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T16:54:56.740Z",
+      "last_seen": "2026-09-26T16:55:07.449Z"
+    },
+    {
+      "id": 20,
+      "username": "ThuyenTruong_5480",
+      "email": "ThuyenTruong_5480@eldora.sea",
+      "password": "$2a$10$rj24UTSBmnaRyJPegfhhtuPq/EUZIRsXEi18HDLCJHcdRTOOKzMVe",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T16:56:24.322Z",
+      "last_seen": "2026-09-26T16:56:34.879Z"
+    },
+    {
+      "id": 21,
+      "username": "TestUser_4318",
+      "email": "1790441831760@a.com",
+      "password": "$2a$10$9uuq1u8TtPbE1B5uLeebf.MNF.xG8CEKk4lnrOEgbeQbqwuvG/kc6",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T16:57:11.880Z",
+      "last_seen": "2026-09-26T16:57:11.880Z"
+    },
+    {
+      "id": 22,
+      "username": "ThuyenTruong_2421",
+      "email": "ThuyenTruong_2421@eldora.sea",
+      "password": "$2a$10$N0rapisPxbUu5DUa9d3quuTo3IlmJB1fKm8gGLMVd1ozNKynpuhrS",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T16:57:50.568Z",
+      "last_seen": "2026-09-26T16:58:01.250Z"
+    },
+    {
+      "id": 23,
+      "username": "ThuyenTruong_6220",
+      "email": "ThuyenTruong_6220@eldora.sea",
+      "password": "$2a$10$aHeddjvj9IlR3400CJZUsuLLRiPHw2n74IUscXRJ4cTIypgXEyQS2",
+      "avatar": "⚓",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-26T17:02:31.358Z",
+      "last_seen": "2026-09-26T17:02:34.376Z"
+    },
+    {
+      "id": 24,
+      "username": "nhynhi",
+      "email": "admin@gmail.com",
+      "password": "$2a$10$Jutc4c9J8KZLsX4KyRqPyOsxeZZzzWgH8nA62tTAPR9MBs.otWQfu",
+      "avatar": "🦦",
+      "elo": 1000,
+      "wins": 0,
+      "games": 0,
+      "online": 0,
+      "created_at": "2026-09-27T10:25:25.053Z",
+      "last_seen": "2026-09-27T18:50:46.818Z"
+    }
+  ],
+  "friendships": [
+    {
+      "id": 1,
+      "from_user": 2,
+      "to_user": 3,
+      "status": "accepted",
+      "created_at": "2026-09-26T10:30:12.002Z"
+    },
+    {
+      "id": 2,
+      "from_user": 6,
+      "to_user": 7,
+      "status": "accepted",
+      "created_at": "2026-09-26T11:31:50.150Z"
+    },
+    {
+      "id": 3,
+      "from_user": 24,
+      "to_user": 2,
+      "status": "accepted",
+      "created_at": "2026-09-27T10:25:53.956Z"
+    },
+    {
+      "id": 4,
+      "from_user": 24,
+      "to_user": 3,
+      "status": "accepted",
+      "created_at": "2026-09-27T18:47:40.395Z"
+    }
+  ],
+  "rooms": [
+    {
+      "id": 2,
+      "code": "WSWN4W",
+      "name": "Đại Hải Trình",
+      "host_id": 3,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T10:37:29.804Z"
+    },
+    {
+      "id": 3,
+      "code": "MWESFM",
+      "name": "Đại Hải Trình",
+      "host_id": 3,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T10:44:24.648Z"
+    },
+    {
+      "id": 4,
+      "code": "OC212Z",
+      "name": "2 Player Duel",
+      "host_id": 4,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T11:00:59.765Z"
+    },
+    {
+      "id": 5,
+      "code": "5E20F9",
+      "name": "Đại Hải Trình",
+      "host_id": 3,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T11:02:34.275Z"
+    },
+    {
+      "id": 6,
+      "code": "O9ORH8",
+      "name": "Đại Hải Trình",
+      "host_id": 2,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T11:09:04.046Z"
+    },
+    {
+      "id": 7,
+      "code": "PVLK9A",
+      "name": "Trận Đấu Đỉnh Cao",
+      "host_id": 6,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T11:31:53.395Z"
+    },
+    {
+      "id": 8,
+      "code": "ZU0TSK",
+      "name": "Hải Trình 4 Người",
+      "host_id": 8,
+      "status": "waiting",
+      "max_players": 4,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T11:32:22.411Z"
+    },
+    {
+      "id": 9,
+      "code": "72YK59",
+      "name": "Trận Đấu Đỉnh Cao",
+      "host_id": 6,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T11:34:21.904Z"
+    },
+    {
+      "id": 10,
+      "code": "CAP6CG",
+      "name": "Hải Trình 4 Người",
+      "host_id": 8,
+      "status": "waiting",
+      "max_players": 4,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T11:34:49.732Z"
+    },
+    {
+      "id": 11,
+      "code": "13JNRS",
+      "name": "Đại Hải Trình",
+      "host_id": 3,
+      "status": "waiting",
+      "max_players": 3,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T11:39:34.212Z"
+    },
+    {
+      "id": 12,
+      "code": "9DGPBX",
+      "name": "Trận Đấu Đỉnh Cao",
+      "host_id": 6,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T11:46:06.242Z"
+    },
+    {
+      "id": 13,
+      "code": "QECFQE",
+      "name": "Hải Trình 4 Người",
+      "host_id": 8,
+      "status": "waiting",
+      "max_players": 4,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T11:46:34.089Z"
+    },
+    {
+      "id": 14,
+      "code": "H647EW",
+      "name": "Trận Đấu Đỉnh Cao",
+      "host_id": 6,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T11:52:27.194Z"
+    },
+    {
+      "id": 15,
+      "code": "BYDN8G",
+      "name": "Hải Trình 4 Người",
+      "host_id": 8,
+      "status": "waiting",
+      "max_players": 4,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T11:52:55.327Z"
+    },
+    {
+      "id": 16,
+      "code": "7M2ABW",
+      "name": "Trận Đấu Đỉnh Cao",
+      "host_id": 6,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T12:08:59.879Z"
+    },
+    {
+      "id": 17,
+      "code": "4TT0BW",
+      "name": "Hải Trình 4 Người",
+      "host_id": 8,
+      "status": "waiting",
+      "max_players": 4,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T12:09:29.547Z"
+    },
+    {
+      "id": 18,
+      "code": "UVET55",
+      "name": "Đại Hải Trình",
+      "host_id": 3,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T12:10:49.192Z"
+    },
+    {
+      "id": 19,
+      "code": "A0PE4P",
+      "name": "Trận Đấu Đỉnh Cao",
+      "host_id": 6,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T12:18:31.631Z"
+    },
+    {
+      "id": 20,
+      "code": "XCFIHL",
+      "name": "Hải Trình 4 Người",
+      "host_id": 8,
+      "status": "waiting",
+      "max_players": 4,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T12:19:02.320Z"
+    },
+    {
+      "id": 21,
+      "code": "04N00R",
+      "name": "Trận Đấu Đỉnh Cao",
+      "host_id": 6,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T12:46:57.758Z"
+    },
+    {
+      "id": 22,
+      "code": "1HJ0BE",
+      "name": "Hải Trình 4 Người",
+      "host_id": 8,
+      "status": "waiting",
+      "max_players": 4,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T12:47:28.180Z"
+    },
+    {
+      "id": 25,
+      "code": "APC4DT",
+      "name": "Đại Hải Trình",
+      "host_id": 3,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T15:03:52.485Z"
+    },
+    {
+      "id": 26,
+      "code": "1JD727",
+      "name": "Trận Đấu Hello vs Nqkha",
+      "host_id": 3,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T15:05:24.733Z"
+    },
+    {
+      "id": 28,
+      "code": "OT1JJS",
+      "name": "Hướng Dẫn Tân Thủ (Vs AI)",
+      "host_id": 11,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T15:30:00.559Z"
+    },
+    {
+      "id": 30,
+      "code": "UI86M2",
+      "name": "Hướng Dẫn Tân Thủ (Vs AI)",
+      "host_id": 12,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T15:32:42.807Z"
+    },
+    {
+      "id": 31,
+      "code": "5LU4TW",
+      "name": "Hướng Dẫn Tân Thủ (Vs AI)",
+      "host_id": 13,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T15:33:40.238Z"
+    },
+    {
+      "id": 33,
+      "code": "IJAI94",
+      "name": "Hướng Dẫn Tân Thủ (Vs AI)",
+      "host_id": 2,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T15:41:06.760Z"
+    },
+    {
+      "id": 34,
+      "code": "G2OGRL",
+      "name": "Hướng Dẫn Tân Thủ (Vs AI)",
+      "host_id": 14,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T15:43:46.019Z"
+    },
+    {
+      "id": 35,
+      "code": "UMYL63",
+      "name": "Hướng Dẫn Tân Thủ (Vs AI)",
+      "host_id": 15,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T15:44:25.737Z"
+    },
+    {
+      "id": 36,
+      "code": "DG17XF",
+      "name": "Hướng Dẫn Tân Thủ (Vs AI)",
+      "host_id": 16,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T15:44:52.346Z"
+    },
+    {
+      "id": 37,
+      "code": "I5SQAQ",
+      "name": "Hướng Dẫn Tân Thủ (Vs AI)",
+      "host_id": 2,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T15:49:58.001Z"
+    },
+    {
+      "id": 38,
+      "code": "BWBQT8",
+      "name": "Đại Hải Trình",
+      "host_id": 2,
+      "status": "waiting",
+      "max_players": 3,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T15:51:59.416Z"
+    },
+    {
+      "id": 39,
+      "code": "IQIEPC",
+      "name": "Đại Hải Trình",
+      "host_id": 2,
+      "status": "playing",
+      "max_players": 3,
+      "is_private": 0,
+      "password": null,
+      "scenario": "islands",
+      "win_vp": 13,
+      "created_at": "2026-09-26T15:52:15.354Z"
+    },
+    {
+      "id": 43,
+      "code": "UWIYTQ",
+      "name": "Đại Hải Trình",
+      "host_id": 3,
+      "status": "waiting",
+      "max_players": 3,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T16:12:24.620Z"
+    },
+    {
+      "id": 46,
+      "code": "AOBSTL",
+      "name": "Hướng Dẫn Tân Thủ (Vs AI)",
+      "host_id": 3,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T16:36:17.565Z"
+    },
+    {
+      "id": 47,
+      "code": "39AZDC",
+      "name": "Hải Trình Của Jack",
+      "host_id": 6,
+      "status": "waiting",
+      "max_players": 3,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T16:36:17.712Z"
+    },
+    {
+      "id": 48,
+      "code": "N42Z9B",
+      "name": "Hải Trình Của Jack",
+      "host_id": 6,
+      "status": "waiting",
+      "max_players": 3,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T16:38:24.461Z"
+    },
+    {
+      "id": 49,
+      "code": "9RDHKZ",
+      "name": "Đảo Vàng Eldorado",
+      "host_id": 17,
+      "status": "waiting",
+      "max_players": 3,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T16:51:51.508Z"
+    },
+    {
+      "id": 50,
+      "code": "7V43CO",
+      "name": "Đảo Vàng Eldorado",
+      "host_id": 18,
+      "status": "waiting",
+      "max_players": 3,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T16:53:25.467Z"
+    },
+    {
+      "id": 51,
+      "code": "7RUMOB",
+      "name": "Đảo Vàng Eldorado",
+      "host_id": 19,
+      "status": "waiting",
+      "max_players": 3,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T16:54:58.773Z"
+    },
+    {
+      "id": 52,
+      "code": "TJ8PVC",
+      "name": "Đảo Vàng Eldorado",
+      "host_id": 20,
+      "status": "waiting",
+      "max_players": 3,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T16:56:26.367Z"
+    },
+    {
+      "id": 53,
+      "code": "KWZDYS",
+      "name": "Đảo Vàng Eldorado",
+      "host_id": 22,
+      "status": "waiting",
+      "max_players": 3,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-26T16:57:52.599Z"
+    },
+    {
+      "id": 64,
+      "code": "TESTWIN",
+      "name": "🏆 Phòng Test Chiến Thắng (Auto-Win)",
+      "host_id": 1,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "default",
+      "win_vp": 13,
+      "created_at": "2026-09-27T16:48:45.787Z"
+    },
+    {
+      "id": 71,
+      "code": "HKUPX3",
+      "name": "Verify Sync Room",
+      "host_id": 1,
+      "status": "waiting",
+      "max_players": 3,
+      "is_private": 0,
+      "password": null,
+      "scenario": "default",
+      "win_vp": 13,
+      "created_at": "2026-09-27T17:07:18.809Z"
+    },
+    {
+      "id": 74,
+      "code": "VLILXW",
+      "name": "Hướng Dẫn Tân Thủ (Vs AI)",
+      "host_id": 2,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-27T18:40:38.548Z"
+    },
+    {
+      "id": 75,
+      "code": "F7JOZ8",
+      "name": "Hướng Dẫn Tân Thủ (Vs AI)",
+      "host_id": 3,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-28T11:15:34.973Z"
+    },
+    {
+      "id": 76,
+      "code": "OSU23L",
+      "name": "Đại Hải Trình",
+      "host_id": 3,
+      "status": "playing",
+      "max_players": 4,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-28T12:56:29.622Z"
+    },
+    {
+      "id": 77,
+      "code": "WIM2LO",
+      "name": "Đại Hải Trình",
+      "host_id": 3,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-28T13:00:18.186Z"
+    },
+    {
+      "id": 78,
+      "code": "6RJ5V1",
+      "name": "QA Battle 8544",
+      "host_id": 6,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-28T17:40:58.566Z"
+    },
+    {
+      "id": 79,
+      "code": "KI7CVZ",
+      "name": "QA Battle 7466",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-28T17:42:37.502Z"
+    },
+    {
+      "id": 80,
+      "code": "JBWF2I",
+      "name": "QA Battle 9775",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-28T17:43:39.816Z"
+    },
+    {
+      "id": 81,
+      "code": "8FT5MP",
+      "name": "QA Battle 2728",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-28T17:44:52.809Z"
+    },
+    {
+      "id": 82,
+      "code": "JUQEZ8",
+      "name": "QA Battle 1064",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-28T17:46:21.134Z"
+    },
+    {
+      "id": 83,
+      "code": "AXCYYQ",
+      "name": "QA Battle 9290",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-28T17:48:59.326Z"
+    },
+    {
+      "id": 84,
+      "code": "UV2WEP",
+      "name": "QA Battle 3630",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-28T17:50:03.655Z"
+    },
+    {
+      "id": 85,
+      "code": "XL9MTA",
+      "name": "QA Battle 9583",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-28T17:52:29.623Z"
+    },
+    {
+      "id": 86,
+      "code": "WQPWU8",
+      "name": "Debug 3341",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-28T17:55:23.366Z"
+    },
+    {
+      "id": 87,
+      "code": "GZNQGI",
+      "name": "Debug 9701",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-28T17:55:39.728Z"
+    },
+    {
+      "id": 88,
+      "code": "PDY9PU",
+      "name": "Debug 2434",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-28T17:56:02.455Z"
+    },
+    {
+      "id": 89,
+      "code": "5G3UK2",
+      "name": "Debug 5725",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-28T17:56:25.939Z"
+    },
+    {
+      "id": 90,
+      "code": "0IHR1D",
+      "name": "Debug 1452",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-28T17:56:51.479Z"
+    },
+    {
+      "id": 91,
+      "code": "V76N6H",
+      "name": "Debug 9613",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-28T17:58:59.633Z"
+    },
+    {
+      "id": 92,
+      "code": "2SMHZ7",
+      "name": "QA Battle 9792",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-28T17:59:29.857Z"
+    },
+    {
+      "id": 93,
+      "code": "NA8OCO",
+      "name": "QA Battle 4780",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-28T18:00:34.829Z"
+    },
+    {
+      "id": 94,
+      "code": "5YNKVM",
+      "name": "QA Battle 2054",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-29T00:34:42.151Z"
+    },
+    {
+      "id": 95,
+      "code": "PPSJD8",
+      "name": "QA Battle 1932",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-29T00:41:21.962Z"
+    },
+    {
+      "id": 96,
+      "code": "OGYHN1",
+      "name": "QA Battle 0762",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-29T00:42:50.794Z"
+    },
+    {
+      "id": 97,
+      "code": "GLJOY1",
+      "name": "Trận Đấu Đỉnh Cao",
+      "host_id": 6,
+      "status": "waiting",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-29T00:43:17.650Z"
+    },
+    {
+      "id": 98,
+      "code": "X80M76",
+      "name": "Trận Đấu Đỉnh Cao",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-29T00:44:05.624Z"
+    },
+    {
+      "id": 99,
+      "code": "RFGUJL",
+      "name": "Hải Trình 4 Người",
+      "host_id": 8,
+      "status": "playing",
+      "max_players": 4,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-29T00:44:37.904Z"
+    },
+    {
+      "id": 100,
+      "code": "FGKJM6",
+      "name": "QA Battle 9658",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-29T00:45:29.742Z"
+    },
+    {
+      "id": 101,
+      "code": "BS58AJ",
+      "name": "Trận Đấu Đỉnh Cao",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-29T00:46:23.047Z"
+    },
+    {
+      "id": 102,
+      "code": "7RGVB9",
+      "name": "Hải Trình 4 Người",
+      "host_id": 8,
+      "status": "playing",
+      "max_players": 4,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-29T00:46:54.564Z"
+    },
+    {
+      "id": 103,
+      "code": "JI8315",
+      "name": "QA Battle 5406",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-29T00:47:45.506Z"
+    },
+    {
+      "id": 104,
+      "code": "C0P9M2",
+      "name": "Trận Đấu Đỉnh Cao",
+      "host_id": 6,
+      "status": "playing",
+      "max_players": 2,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-29T00:48:40.660Z"
+    },
+    {
+      "id": 105,
+      "code": "WKBKEB",
+      "name": "Hải Trình 4 Người",
+      "host_id": 8,
+      "status": "playing",
+      "max_players": 4,
+      "is_private": 0,
+      "password": null,
+      "scenario": "voyages",
+      "win_vp": 13,
+      "created_at": "2026-09-29T00:49:13.360Z"
+    }
+  ],
+  "room_players": [
+    {
+      "room_id": 2,
+      "user_id": 3,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 3,
+      "user_id": 3,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 4,
+      "user_id": 4,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 4,
+      "user_id": 5,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 5,
+      "user_id": 3,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 6,
+      "user_id": 2,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 7,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 8,
+      "user_id": 8,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 9,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 10,
+      "user_id": 8,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 11,
+      "user_id": 3,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 12,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 13,
+      "user_id": 8,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 14,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 15,
+      "user_id": 8,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 16,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 17,
+      "user_id": 8,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 18,
+      "user_id": 3,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 19,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 20,
+      "user_id": 8,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 21,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 22,
+      "user_id": 8,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 25,
+      "user_id": 3,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 26,
+      "user_id": 3,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 28,
+      "user_id": 11,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 30,
+      "user_id": 12,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 31,
+      "user_id": 13,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 33,
+      "user_id": 2,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 34,
+      "user_id": 14,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 35,
+      "user_id": 15,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 36,
+      "user_id": 16,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 37,
+      "user_id": 2,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 38,
+      "user_id": 2,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 39,
+      "user_id": 2,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 43,
+      "user_id": 3,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 46,
+      "user_id": 3,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 47,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 48,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 49,
+      "user_id": 17,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 50,
+      "user_id": 18,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 51,
+      "user_id": 19,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 52,
+      "user_id": 20,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 53,
+      "user_id": 22,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 71,
+      "user_id": 1,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 74,
+      "user_id": 2,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 75,
+      "user_id": 3,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 76,
+      "user_id": 3,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 77,
+      "user_id": 3,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 78,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 79,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 79,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 80,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 80,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 81,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 81,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 82,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 82,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 83,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 83,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 84,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 84,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 85,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 85,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 86,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 86,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 87,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 87,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 88,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 88,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 89,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 89,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 90,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 90,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 91,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 91,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 92,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 92,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 93,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 93,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 94,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 94,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 95,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 95,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 96,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 96,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 97,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 98,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 98,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 99,
+      "user_id": 8,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 99,
+      "user_id": 9,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 99,
+      "user_id": 6,
+      "seat": 2,
+      "color": "green",
+      "ready": 0
+    },
+    {
+      "room_id": 99,
+      "user_id": 7,
+      "seat": 3,
+      "color": "orange",
+      "ready": 0
+    },
+    {
+      "room_id": 100,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 100,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 101,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 101,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 102,
+      "user_id": 8,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 102,
+      "user_id": 9,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 102,
+      "user_id": 6,
+      "seat": 2,
+      "color": "green",
+      "ready": 0
+    },
+    {
+      "room_id": 102,
+      "user_id": 7,
+      "seat": 3,
+      "color": "orange",
+      "ready": 0
+    },
+    {
+      "room_id": 103,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 103,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 104,
+      "user_id": 6,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 104,
+      "user_id": 7,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 105,
+      "user_id": 8,
+      "seat": 0,
+      "color": "red",
+      "ready": 1
+    },
+    {
+      "room_id": 105,
+      "user_id": 9,
+      "seat": 1,
+      "color": "blue",
+      "ready": 0
+    },
+    {
+      "room_id": 105,
+      "user_id": 6,
+      "seat": 2,
+      "color": "green",
+      "ready": 0
+    },
+    {
+      "room_id": 105,
+      "user_id": 7,
+      "seat": 3,
+      "color": "orange",
+      "ready": 0
+    }
+  ],
+  "game_history": [],
+  "messages": [
+    {
+      "id": 1,
+      "room_id": 0,
+      "user_id": 2,
+      "text": "hi",
+      "sent_at": "2026-09-26T10:36:28.195Z"
+    },
+    {
+      "id": 2,
+      "room_id": 0,
+      "user_id": 2,
+      "text": "12",
+      "sent_at": "2026-09-26T10:36:33.485Z"
+    },
+    {
+      "id": 3,
+      "room_id": 0,
+      "user_id": 6,
+      "text": "Chào đồng đội Seafarers 3D!",
+      "sent_at": "2026-09-26T11:31:52.246Z"
+    },
+    {
+      "id": 4,
+      "room_id": 0,
+      "user_id": 6,
+      "text": "Chào đồng đội Seafarers 3D!",
+      "sent_at": "2026-09-26T11:34:20.769Z"
+    },
+    {
+      "id": 5,
+      "room_id": 0,
+      "user_id": 6,
+      "text": "Chào đồng đội Seafarers 3D!",
+      "sent_at": "2026-09-26T11:46:05.075Z"
+    },
+    {
+      "id": 6,
+      "room_id": 0,
+      "user_id": 6,
+      "text": "Chào đồng đội Seafarers 3D!",
+      "sent_at": "2026-09-26T11:52:26.026Z"
+    },
+    {
+      "id": 7,
+      "room_id": 0,
+      "user_id": 6,
+      "text": "Chào đồng đội Seafarers 3D!",
+      "sent_at": "2026-09-26T12:08:58.721Z"
+    },
+    {
+      "id": 8,
+      "room_id": 0,
+      "user_id": 6,
+      "text": "Chào đồng đội Seafarers 3D!",
+      "sent_at": "2026-09-26T12:18:30.465Z"
+    },
+    {
+      "id": 9,
+      "room_id": 0,
+      "user_id": 6,
+      "text": "Chào đồng đội Seafarers 3D!",
+      "sent_at": "2026-09-26T12:46:56.580Z"
+    }
+  ],
+  "_counters": {
+    "users": 24,
+    "friendships": 4,
+    "rooms": 105,
+    "game_history": 0,
+    "messages": 9,
+    "room_invites": 10
+  },
+  "room_invites": []
+}

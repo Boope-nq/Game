@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0d2340" />
+  <title>⚓ Catan: Seafarers — Mobile Edition</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ════════════════════════════════════════════════════════════
+       MAIN MENU (Mobile-First Responsive)
+  ════════════════════════════════════════════════════════════ -->
+  <div id="main-menu">
+    <div id="menu-content">
+      <div id="menu-logo">
+        <div class="logo-anchor">⚓</div>
+        <h1>Catan: Seafarers</h1>
+        <p>Người Khai Phá Biển Cả</p>
+      </div>
+
+      <div id="menu-options">
+        <h2>Chọn số người chơi</h2>
+        <div id="player-select-buttons">
+          <button class="btn-start-game btn btn-menu" data-players="2">
+            👥 2 người chơi
+          </button>
+          <button class="btn-start-game btn btn-menu btn-primary" data-players="3">
+            👥 3 người chơi <span class="recommended">Đề xuất</span>
+          </button>
+          <button class="btn-start-game btn btn-menu" data-players="4">
+            👥 4 người chơi
+          </button>
+        </div>
+      </div>
+
+      <div id="menu-rules">
+        <h3>📜 Luật chơi cơ bản</h3>
+        <ul>
+          <li>🎲 Tung 2 xúc xắc → thu tài nguyên theo ô</li>
+          <li>🏠 Xây Định cư → +1 điểm chiến thắng</li>
+          <li>🏙️ Nâng lên Thành phố → +2 điểm chiến thắng</li>
+          <li>⛵ Dùng Tàu vượt biển để khám phá các đảo xa</li>
+          <li>🪙 Ô Vàng: tự chọn tài nguyên bất kỳ</li>
+          <li>🏆 Đạt <strong>13 điểm</strong> → Giành chiến thắng!</li>
+        </ul>
+      </div>
+    </div>
+
+    <div id="menu-waves">
+      <div class="wave"></div>
+      <div class="wave"></div>
+      <div class="wave"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       GAME CONTAINER (Touch Action None & Fullscreen)
+  ════════════════════════════════════════════════════════════ -->
+  <main id="game-container" class="hidden">
+
+    <!-- Canvas bản đồ (Retina High-DPI & Gesture Pan/Zoom) -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- HUD overlay (DOM trên canvas - Thumb Zone & Safe Areas) -->
+    <div id="hud-overlay"></div>
+
+    <!-- Floating Zoom Controls cho Tablet / Phụ trợ chạm -->
+    <div id="camera-quick-tools">
+      <button class="btn btn-zoom-circle" id="btn-zoom-in" title="Phóng to" aria-label="Phóng to">+</button>
+      <button class="btn btn-zoom-circle" id="btn-zoom-out" title="Thu nhỏ" aria-label="Thu nhỏ">−</button>
+    </div>
+
+    <!-- Tooltip khi chạm/hover ô -->
+    <div id="tile-tooltip" class="hidden">
+      <span id="tooltip-content"></span>
+    </div>
+
+  </main>
+
+  <script type="module" src="src/main.js"></script>
+  <script>
+    // Quick tools listener
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('btn-zoom-in')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window._zoomIn?.();
+      });
+      document.getElementById('btn-zoom-out')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window._zoomOut?.();
+      });
+    });
+  </script>
+</body>
+</html>

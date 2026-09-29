@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Đăng nhập - Merchants of Eldora (Catan Seafarers 3D)</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/mobile.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden !important;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: radial-gradient(circle at 50% 20%, #2f82c7 0%, #1b588e 50%, #113c66 100%);
+            position: relative;
+            overflow-x: hidden !important;
+        }
+
+        /* Animated waves container prevents horizontal scroll overflow */
+        .wave-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 220px;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wave-bg {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 200px;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 800 100" xmlns="http://www.w3.org/2000/svg"><path d="M0 50 Q 100 0 200 50 T 400 50 T 600 50 T 800 50 L 800 100 L 0 100 Z" fill="rgba(65, 155, 230, 0.4)"/></svg>') repeat-x;
+            background-size: 50% 100%;
+            animation: wave 10s linear infinite;
+            z-index: 0;
+        }
+        .wave-bg:nth-child(2) {
+            bottom: -20px;
+            opacity: 0.7;
+            animation: wave 15s linear infinite reverse;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 800 100" xmlns="http://www.w3.org/2000/svg"><path d="M0 50 Q 100 100 200 50 T 400 50 T 600 50 T 800 50 L 800 100 L 0 100 Z" fill="rgba(30, 95, 160, 0.75)"/></svg>') repeat-x;
+            background-size: 50% 100%;
+        }
+
+        .auth-container {
+            width: 420px;
+            z-index: 10;
+            position: relative;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .auth-logo-img {
+            max-height: 110px;
+            width: auto;
+            max-width: 240px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 210, 59, 0.6);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+            margin-bottom: 12px;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .auth-header h1 {
+            color: var(--gold);
+            font-size: 1.8rem;
+            margin: 0;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            letter-spacing: 1px;
+            font-weight: 900;
+        }
+
+        .auth-header p {
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-size: 0.95rem;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1.5px solid var(--border);
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: var(--gold);
+            border-bottom: 3px solid var(--gold);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .error-msg {
+            color: var(--danger);
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .btn-submit {
+            width: 100%;
+            margin-top: 10px;
+            font-size: 1.1rem;
+            padding: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="wave-container" aria-hidden="true">
+        <div class="wave-bg"></div>
+        <div class="wave-bg"></div>
+    </div>
+
+    <div class="auth-container">
+        <div class="auth-header">
+            <img src="assets/logo.png" alt="Merchants of Eldora" class="auth-logo-img">
+            <h1>MERCHANTS OF ELDORA</h1>
+            <p>Hải trình thương nghiệp & Thám hiểm đảo xa</p>
+        </div>
+
+        <div class="card">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('login')" id="tab-login">Đăng nhập</div>
+                <div class="tab" onclick="switchTab('register')" id="tab-register">Đăng ký</div>
+            </div>
+
+            <!-- Login Form -->
+            <form id="form-login" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <input type="text" id="login-user" placeholder="Tên đăng nhập hoặc Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="login-pass" placeholder="Mật khẩu" required>
+                </div>
+                <div class="error-msg" id="login-error"></div>
+                <button type="submit" class="btn btn-primary btn-submit">Vào Game</button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="form-register" class="hidden" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <input type="text" id="reg-user" placeholder="Tên đăng nhập" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="reg-email" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="reg-pass" placeholder="Mật khẩu" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="reg-confirm" placeholder="Xác nhận mật khẩu" required>
+                </div>
+                <div class="error-msg" id="reg-error"></div>
+                <button type="submit" class="btn btn-primary btn-submit">Tạo tài khoản</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Check if already logged in
+        if (localStorage.getItem('token')) {
+            window.location.href = 'lobby.html';
+        }
+
+        function switchTab(tab) {
+            document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+            document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+            document.getElementById('form-login').classList.toggle('hidden', tab !== 'login');
+            document.getElementById('form-register').classList.toggle('hidden', tab !== 'register');
+            
+            // Clear errors
+            document.getElementById('login-error').style.display = 'none';
+            document.getElementById('reg-error').style.display = 'none';
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('login-user').value;
+            const pass = document.getElementById('login-pass').value;
+            const errDiv = document.getElementById('login-error');
+            
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usernameOrEmail: user, password: pass })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Đăng nhập thất bại');
+
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                localStorage.setItem('username', data.user.username);
+                window.location.href = 'lobby.html';
+            } catch (err) {
+                errDiv.textContent = err.message;
+                errDiv.style.display = 'block';
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const user = document.getElementById('reg-user').value;
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-pass').value;
+            const confirm = document.getElementById('reg-confirm').value;
+            const errDiv = document.getElementById('reg-error');
+            
+            if (pass !== confirm) {
+                errDiv.textContent = 'Mật khẩu xác nhận không khớp';
+                errDiv.style.display = 'block';
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, email, password: pass })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Đăng ký thất bại');
+
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                localStorage.setItem('username', data.user.username);
+                window.location.href = 'lobby.html';
+            } catch (err) {
+                errDiv.textContent = err.message || 'Đăng ký thất bại';
+                errDiv.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>

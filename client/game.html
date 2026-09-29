@@ -1,0 +1,2176 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Merchants of Eldora 3D - Bàn Chơi</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/mobile.css">
+    <link rel="stylesheet" href="css/rules.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "/vendor/three/build/three.module.js",
+            "three/addons/": "/vendor/three/examples/jsm/",
+            "three/examples/jsm/": "/vendor/three/examples/jsm/",
+            "socket.io-client": "/vendor/socket.io/socket.io.esm.min.js"
+        }
+    }
+    </script>
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent !important;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+            background-color: #1a5b8c;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent !important;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        #game-canvas {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+            cursor: grab;
+            outline: none !important;
+            border: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+        }
+        #game-canvas:active {
+            cursor: grabbing;
+            outline: none !important;
+            border: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+        }
+
+        #hud {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .hud-interactive {
+            pointer-events: auto;
+        }
+
+        /* Top Bar */
+        .top-bar-game {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 18px;
+            background: linear-gradient(90deg, rgba(25, 95, 155, 0.94), rgba(45, 130, 195, 0.94));
+            border-bottom: 2px solid rgba(255, 238, 217, 0.45);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+            position: relative;
+            z-index: 900;
+            overflow: visible;
+            height: 48px;
+            box-sizing: border-box;
+        }
+
+        .top-bar-game-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            flex: 1 1 auto;
+            overflow: visible;
+        }
+
+        .top-bar-logo-wrap {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .top-bar-game-logo {
+            height: 34px !important;
+            max-height: 34px !important;
+            width: auto !important;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 210, 59, 0.35);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            display: block;
+        }
+
+        #players-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: visible;
+        }
+
+        .player-pod {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 3px 10px 3px 4px;
+            background: rgba(15, 23, 42, 0.45);
+            border: 1.5px solid rgba(255, 255, 255, 0.18);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            position: relative;
+            backdrop-filter: blur(6px);
+            box-sizing: border-box;
+            flex-shrink: 0;
+            color: #ffffff;
+        }
+        .player-pod:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 238, 217, 0.7);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+        }
+        .player-pod.active-turn {
+            background: linear-gradient(135deg, rgba(255, 238, 217, 0.32), rgba(56, 189, 248, 0.24));
+            border-color: #FFEED9;
+            box-shadow: 0 0 0 1.5px #FFEED9, 0 0 16px rgba(255, 238, 217, 0.5);
+            animation: podTurnPulse 1.8s infinite ease-in-out;
+        }
+        @keyframes podTurnPulse {
+            0%, 100% {
+                box-shadow: 0 0 0 1.5px #FFEED9, 0 0 12px rgba(255, 238, 217, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 0 2.5px #ffd700, 0 0 22px rgba(255, 215, 0, 0.75);
+            }
+        }
+
+        .player-pod-avatar-wrap {
+            position: relative;
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .player-pod-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: center 12%;
+            border: 2px solid var(--player-col, #38bdf8);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+            background: #0f172a;
+            display: block;
+        }
+        .player-pod-vp {
+            position: absolute;
+            bottom: -3px;
+            right: -5px;
+            background: linear-gradient(135deg, #ffd700, #f59e0b);
+            color: #0f172a;
+            font-size: 0.65rem;
+            font-weight: 900;
+            line-height: 1;
+            padding: 1.5px 4px;
+            border-radius: 8px;
+            border: 1.2px solid #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+        .player-turn-indicator {
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            border: 1.5px solid #ffffff;
+            box-shadow: 0 0 6px #22c55e;
+        }
+
+        .player-pod-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            line-height: 1.2;
+            min-width: 0;
+            text-align: left;
+        }
+        .player-pod-name {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            max-width: 90px;
+        }
+        .pod-me-tag {
+            font-size: 0.6rem;
+            background: #0284c7;
+            color: #ffffff;
+            padding: 0 4px;
+            border-radius: 4px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .player-pod-stats {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 1px;
+            white-space: nowrap;
+        }
+        .pod-res-pill,
+        .pod-dev-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #bae6fd;
+        }
+        .pod-res-pill svg,
+        .pod-dev-pill svg {
+            width: 10px;
+            height: 10px;
+            fill: currentColor;
+        }
+        .pod-badge-road,
+        .pod-badge-army {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            color: #ffd700;
+            background: rgba(255, 215, 0, 0.2);
+            border: 1px solid #ffd700;
+        }
+        .pod-badge-army {
+            color: #fca5a5;
+            background: rgba(239, 68, 68, 0.25);
+            border-color: #ef4444;
+        }
+        .pod-badge-road svg,
+        .pod-badge-army svg {
+            width: 9px;
+            height: 9px;
+        }
+
+        /* Legacy fallback */
+        .player-score {
+            display: inline-flex;
+        }
+
+        /* Center Phase Indicator */
+        .phase-indicator {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(25, 95, 155, 0.95);
+            padding: 8px 24px;
+            border-radius: 0 !important;
+            border: 2px solid #FFEED9;
+            color: #FFEED9;
+            font-weight: bold;
+            font-size: 1.05rem;
+            letter-spacing: 1px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4), 0 0 15px rgba(255, 238, 217, 0.25);
+            text-align: center;
+        }
+
+        #hint-text {
+            font-size: 0.85rem;
+            color: #E0F4FF;
+            font-weight: normal;
+            margin-top: 3px;
+        }
+
+        /* Bottom Bar */
+        .bottom-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 16px 20px;
+            background: linear-gradient(to top, rgba(20, 75, 125, 0.96), transparent);
+        }
+
+        .resources {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* ─── STUNNING COLLECTIBLE RESOURCE CARDS ─── */
+        .resources {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            padding-bottom: 4px;
+        }
+
+        .res-card {
+            position: relative;
+            background: rgba(18, 52, 88, 0.95);
+            border: 2px solid rgba(255, 238, 217, 0.4);
+            border-radius: 0 !important;
+            padding: 8px 12px;
+            text-align: center;
+            min-width: 70px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+            backdrop-filter: blur(8px);
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, border-color 0.22s ease;
+            overflow: visible;
+        }
+
+        .res-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
+            opacity: 0.6;
+        }
+
+        .res-card:hover {
+            transform: translateY(-10px) scale(1.07);
+            box-shadow: 0 14px 28px rgba(0,0,0,0.65), 0 0 20px var(--card-glow, rgba(255,215,0,0.5));
+            border-color: #ffe082 !important;
+            z-index: 10;
+        }
+
+        .res-card:active {
+            transform: translateY(-4px) scale(0.98);
+        }
+
+        /* Themed Resource Borders & Glows */
+        .res-card[data-res="LUMBER"] {
+            --card-glow: rgba(74, 222, 128, 0.6);
+            background: linear-gradient(165deg, rgba(22, 78, 43, 0.95), rgba(12, 43, 24, 0.98));
+            border-color: #4ade8088;
+        }
+        .res-card[data-res="BRICK"] {
+            --card-glow: rgba(248, 113, 113, 0.6);
+            background: linear-gradient(165deg, rgba(131, 39, 28, 0.95), rgba(74, 21, 15, 0.98));
+            border-color: #f8717188;
+        }
+        .res-card[data-res="GRAIN"] {
+            --card-glow: rgba(250, 204, 21, 0.6);
+            background: linear-gradient(165deg, rgba(140, 100, 14, 0.95), rgba(77, 54, 8, 0.98));
+            border-color: #facc1588;
+        }
+        .res-card[data-res="WOOL"] {
+            --card-glow: rgba(163, 230, 53, 0.6);
+            background: linear-gradient(165deg, rgba(43, 110, 30, 0.95), rgba(21, 56, 15, 0.98));
+            border-color: #a3e63588;
+        }
+        .res-card[data-res="ORE"] {
+            --card-glow: rgba(148, 163, 184, 0.6);
+            background: linear-gradient(165deg, rgba(63, 71, 86, 0.95), rgba(32, 37, 48, 0.98));
+            border-color: #94a3b888;
+        }
+        .res-card[data-res="GOLD"] {
+            --card-glow: rgba(251, 191, 36, 0.7);
+            background: linear-gradient(165deg, rgba(153, 110, 0, 0.95), rgba(82, 58, 0, 0.98));
+            border-color: #fbbf24aa;
+        }
+
+        .res-card-name {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #E0F4FF;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .res-mini-thumb {
+            width: 20px;
+            height: 30px;
+            object-fit: cover;
+            border-radius: 3px;
+            border: 1px solid rgba(255, 238, 217, 0.4);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            display: inline-block;
+            vertical-align: middle;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease;
+        }
+        .res-card:hover .res-mini-thumb {
+            transform: scale(1.22) translateY(-2px);
+            border-color: var(--gold);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6), 0 0 10px var(--gold);
+        }
+        .res-card-name svg {
+            width: 16px;
+            height: 16px;
+            filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5));
+        }
+
+        .res-val {
+            font-size: 1.55rem;
+            font-weight: 900;
+            color: #FFEED9;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.7);
+            line-height: 1.1;
+        }
+
+        .res-card-hint {
+            font-size: 0.65rem;
+            color: rgba(224, 244, 255, 0.65);
+            margin-top: 3px;
+            letter-spacing: 0.2px;
+        }
+
+        /* Floating +1 gain badge */
+        .res-gain-badge {
+            position: absolute;
+            top: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #ffd700, #ff9900);
+            color: #000;
+            font-size: 0.85rem;
+            font-weight: 900;
+            padding: 2px 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5), 0 0 10px #ffd700;
+            pointer-events: none;
+            animation: floatUpFade 1.4s ease-out forwards;
+            z-index: 100;
+        }
+
+        @keyframes floatUpFade {
+            0% { opacity: 0; transform: translate(-50%, 8px) scale(0.6); }
+            20% { opacity: 1; transform: translate(-50%, -6px) scale(1.15); }
+            80% { opacity: 1; transform: translate(-50%, -18px) scale(1.0); }
+            100% { opacity: 0; transform: translate(-50%, -32px) scale(0.85); }
+        }
+
+        /* Pulse glow animation on card */
+        .res-card.pulse-glow {
+            animation: cardGlowPulse 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        @keyframes cardGlowPulse {
+            0% { transform: translateY(0) scale(1); filter: brightness(1); }
+            25% { transform: translateY(-12px) scale(1.14); filter: brightness(1.6); box-shadow: 0 0 30px #ffd700, 0 10px 30px rgba(0,0,0,0.8); }
+            50% { transform: translateY(-8px) scale(1.08); filter: brightness(1.3); }
+            100% { transform: translateY(0) scale(1); filter: brightness(1); }
+        }
+
+        /* ─── CARD RECEIVE BANNER OVERLAY ─── */
+        #card-receive-banner {
+            position: fixed;
+            top: 75px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .receive-card-pill {
+            background: linear-gradient(135deg, rgba(14, 42, 71, 0.95), rgba(7, 24, 43, 0.98));
+            border: 2px solid var(--gold);
+            padding: 10px 22px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 25px rgba(255, 215, 0, 0.4);
+            animation: pillBounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes pillBounceIn {
+            0% { opacity: 0; transform: translateY(-30px) scale(0.7); }
+            60% { opacity: 1; transform: translateY(6px) scale(1.05); }
+            100% { opacity: 1; transform: translateY(0) scale(1.0); }
+        }
+
+        /* ─── TAROT / COLLECTIBLE CARD IN DEV MODAL ─── */
+        .tarot-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .tarot-card {
+            background: linear-gradient(160deg, #193a5e 0%, #0d1e33 100%);
+            border: 2px solid var(--gold);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5), inset 0 0 15px rgba(255,215,0,0.1);
+            transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease;
+            border-radius: 8px;
+        }
+
+        .tarot-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 16px 36px rgba(0,0,0,0.75), 0 0 24px rgba(255,215,0,0.3);
+        }
+
+        .tarot-card-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(255,215,0,0.25);
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+        }
+
+        .tarot-card-icon {
+            font-size: 1.8rem;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.6));
+        }
+
+        .tarot-card-title {
+            font-weight: 800;
+            color: var(--gold);
+            font-size: 0.95rem;
+            line-height: 1.2;
+        }
+
+        .tarot-card-desc {
+            font-size: 0.8rem;
+            color: #d1e4ff;
+            line-height: 1.45;
+            margin-bottom: 12px;
+            flex-grow: 1;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-direction: column;
+        }
+        
+        .actions-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .actions-row .btn, .actions .btn {
+            border-radius: 0 !important;
+        }
+
+        .btn-build-active {
+            border-color: #00ffff !important;
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.6);
+            background: rgba(0, 255, 255, 0.2) !important;
+        }
+
+        /* Dice Area */
+        /* Dice Area */
+        .dice-area {
+            position: absolute;
+            bottom: 180px;
+            right: 20px;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+            z-index: 95;
+            pointer-events: none;
+        }
+        .dice-area > * {
+            pointer-events: auto;
+        }
+        
+        .dice-display {
+            font-size: 1.35rem;
+            background: linear-gradient(135deg, rgba(20, 55, 95, 0.95), rgba(10, 30, 55, 0.98));
+            padding: 8px 18px;
+            border-radius: 8px !important;
+            border: 2px solid var(--gold);
+            color: var(--gold);
+            font-weight: 800;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 15px rgba(255,215,0,0.3);
+            display: none;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(8px);
+        }
+
+        #btn-roll {
+            font-size: 1.05rem;
+            font-weight: 800;
+            padding: 12px 24px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border-radius: 8px !important;
+            border: 2px solid #ffd700;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.55), 0 0 18px rgba(245, 158, 11, 0.45);
+            cursor: pointer;
+            transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #btn-roll:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.65), 0 0 25px rgba(255, 215, 0, 0.6);
+        }
+        #btn-roll:active:not(:disabled) {
+            transform: translateY(0) scale(0.98);
+        }
+        #btn-roll.can-roll {
+            animation: rollBtnGlow 1.4s infinite alternate;
+        }
+        @keyframes rollBtnGlow {
+            0% { box-shadow: 0 0 12px #ffd700, 0 6px 18px rgba(0,0,0,0.5); transform: scale(1); }
+            100% { box-shadow: 0 0 28px #ffd700, 0 8px 24px rgba(0,0,0,0.65); transform: scale(1.05); }
+        }
+
+        /* Event Log */
+        .event-log {
+            position: absolute;
+            left: 20px;
+            bottom: 120px;
+            width: 280px;
+            height: 160px;
+            background: rgba(18, 58, 100, 0.9);
+            border: 1px solid rgba(255, 210, 59, 0.35);
+            border-radius: 0 !important;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .log-item {
+            padding: 2px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            line-height: 1.3;
+        }
+        .log-item:last-child {
+            border-bottom: none;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        /* Dialogs */
+        .dialog-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(12, 38, 66, 0.82);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(6px);
+        }
+        .hidden { display: none !important; }
+        .dialog-box {
+            background: linear-gradient(145deg, #1d568e, #133c66);
+            border: 2px solid var(--gold);
+            border-radius: 0 !important;
+            padding: 24px;
+            max-width: 440px;
+            width: 90%;
+            color: #fff;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.65), 0 0 25px rgba(255,210,59,0.2);
+        }
+
+        /* ─── Top Bar Game Menu Dropdown ─── */
+        .game-menu-container {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .game-menu-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 170px;
+            background: linear-gradient(160deg, #18426d 0%, #0d2847 100%);
+            border: 1.5px solid var(--gold);
+            border-radius: 6px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.75), 0 0 20px rgba(255, 215, 0, 0.25);
+            padding: 6px 0;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+            animation: menuFadeIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes menuFadeIn {
+            from { opacity: 0; transform: translateY(-6px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .game-menu-item {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 14px;
+            background: transparent;
+            border: none;
+            color: #E0F4FF;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.15s ease;
+            box-sizing: border-box;
+        }
+
+        .game-menu-item:hover {
+            background: rgba(255, 215, 0, 0.18);
+            color: var(--gold);
+            padding-left: 17px;
+        }
+
+        .game-menu-item .mono-icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            color: inherit;
+        }
+
+        .game-menu-divider {
+            height: 1px;
+            background: rgba(255, 238, 217, 0.18);
+            margin: 4px 0;
+        }
+
+        .game-menu-item.item-danger {
+            color: #ff8585;
+        }
+
+        .game-menu-item.item-danger:hover {
+            background: rgba(255, 75, 75, 0.18);
+            color: #ff5252;
+        }
+
+        /* ─── Settings Modal & Groups ─── */
+        .settings-dialog-box {
+            border-radius: 8px !important;
+            box-shadow: 0 16px 50px rgba(0,0,0,0.85), 0 0 30px rgba(255,215,0,0.25);
+        }
+
+        .settings-group {
+            background: rgba(10, 32, 58, 0.65);
+            border: 1px solid rgba(255, 238, 217, 0.15);
+            border-radius: 6px;
+            padding: 12px;
+        }
+
+        .settings-group-title {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--gold);
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 5px 0;
+        }
+
+        .settings-row:not(:last-child) {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            margin-bottom: 6px;
+            padding-bottom: 8px;
+        }
+
+        .settings-label-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .settings-label-desc {
+            font-size: 0.72rem;
+            color: #aac4e0;
+            margin-top: 2px;
+        }
+        /* Tutorial Coach HUD */
+        .tutorial-hud {
+            position: absolute;
+            top: 75px;
+            right: 20px;
+            z-index: 100;
+            width: 420px;
+            max-width: calc(100vw - 40px);
+            pointer-events: auto;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+        }
+
+        .tutorial-card {
+            background: linear-gradient(145deg, #1d558d, #143e68);
+            border: 2px solid var(--gold);
+            border-radius: 0 !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(240, 192, 64, 0.3);
+            overflow: hidden;
+        }
+
+        .tutorial-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: linear-gradient(90deg, #193863, #0d213d);
+            border-bottom: 1px solid rgba(240, 192, 64, 0.3);
+        }
+
+        .tutorial-coach-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tutorial-coach-avatar {
+            font-size: 1.8rem;
+            filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.6));
+        }
+
+        .tutorial-coach-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .tutorial-step-badge {
+            display: inline-block;
+            background: var(--gold);
+            color: #0a192f;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 1px 7px;
+            border-radius: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .tutorial-header-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .tut-ctrl-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            width: 26px;
+            height: 26px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .tut-ctrl-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #fff;
+        }
+
+        .tutorial-card-body {
+            padding: 14px 16px;
+            font-size: 0.92rem;
+            line-height: 1.55;
+            color: #e2edff;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .tutorial-step-title {
+            margin: 0 0 8px 0;
+            font-size: 1.05rem;
+            color: var(--gold);
+            font-weight: 800;
+        }
+
+        .tutorial-action-hint {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: rgba(240, 192, 64, 0.12);
+            border-left: 3px solid var(--gold);
+            border-radius: 0 6px 6px 0;
+            font-size: 0.88rem;
+            color: #fffae6;
+            font-weight: 600;
+        }
+
+        .tutorial-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 14px;
+            background: rgba(0, 0, 0, 0.25);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .tut-reopen-btn {
+            position: absolute;
+            top: 54px;
+            right: 20px;
+            z-index: 99;
+            background: linear-gradient(135deg, #1b3d6c, #0d223f);
+            border: 1.5px solid var(--gold);
+            color: var(--gold);
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tut-reopen-btn:hover {
+            background: var(--gold);
+            color: #0a192f;
+            box-shadow: 0 0 15px rgba(240, 192, 64, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="game-canvas"></canvas>
+    
+    <div id="hud">
+        <!-- Top Bar -->
+        <div class="top-bar-game hud-interactive">
+            <div class="top-bar-game-left">
+                <div class="top-bar-logo-wrap">
+                    <img src="assets/logo.png" alt="Logo" class="top-bar-game-logo" style="height:34px; max-height:34px; width:auto; border-radius:4px; border:1px solid rgba(255,210,59,0.35); filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                </div>
+                <div id="players-container">
+                    <!-- Dynamically populated 4-Player Pods -->
+                </div>
+            </div>
+            <div class="game-menu-container">
+                <button class="btn btn-ghost" id="game-menu-btn" style="padding:6px 14px; font-size:0.85rem; font-weight:700; border-color:var(--gold); color:var(--gold); display:inline-flex; align-items:center; gap:6px;" title="Menu tùy chọn & Cài đặt">
+                    <svg class="mono-icon" style="width:18px;height:18px;" viewBox="0 0 24 24"><path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+                    <span>Menu</span>
+                </button>
+                
+                <!-- Dropdown Menu -->
+                <div id="game-menu-dropdown" class="game-menu-dropdown hidden">
+                    <button class="game-menu-item" id="menu-btn-settings">
+                        <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                        <span>Cài Đặt</span>
+                    </button>
+                    <button class="game-menu-item" id="menu-btn-static-cam">
+                        <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                        <span>Camera Tĩnh</span>
+                    </button>
+                    <button class="game-menu-item" id="menu-btn-rules">
+                        <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                        <span>Luật Chơi</span>
+                    </button>
+                    <div class="game-menu-divider"></div>
+                    <button class="game-menu-item item-danger" id="menu-btn-leave">
+                        <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+                        <span>Rời Phòng</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Phase & Instruction -->
+        <div class="phase-indicator">
+            <div id="phase-label">KHỞI ĐỘNG TRẬN ĐẤU</div>
+            <div id="hint-text">Đang tải bàn cờ...</div>
+        </div>
+
+        <!-- Interactive Tutorial Coach HUD -->
+        <div id="tutorial-hud" class="tutorial-hud hidden hud-interactive">
+            <div class="tutorial-card">
+                <div class="tutorial-card-header">
+                    <div class="tutorial-coach-info">
+                        <svg class="mono-icon tutorial-coach-avatar" style="width:32px;height:32px;" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg>
+                        <div>
+                            <div class="tutorial-coach-title">ĐẠI THUYỀN TRƯỞNG CATAN</div>
+                            <div class="tutorial-step-badge" id="tut-step-badge">BƯỚC 1/8</div>
+                        </div>
+                    </div>
+                    <div class="tutorial-header-controls">
+                        <button id="tut-btn-minimize" class="tut-ctrl-btn" title="Thu gọn / Mở rộng">➖</button>
+                        <button id="tut-btn-close" class="tut-ctrl-btn" title="Đóng hướng dẫn">✕</button>
+                    </div>
+                </div>
+                
+                <div class="tutorial-card-body" id="tut-card-body">
+                    <h4 class="tutorial-step-title" id="tut-step-title">Đặt Khu Định Cư Khởi Đầu</h4>
+                    <div class="tutorial-step-desc" id="tut-step-desc">
+                        Chào mừng bạn đến với trận đấu hướng dẫn! Hãy chọn một giao điểm đẹp giữa 3 ô đất có tài nguyên đa dạng (ưu tiên số 6, 8 màu đỏ).
+                    </div>
+                    <div class="tutorial-action-hint" id="tut-action-hint">
+                        Bấm chuột trái vào một vòng tròn vàng phát sáng trên bàn cờ để đặt Khu định cư!
+                    </div>
+                </div>
+
+                <div class="tutorial-card-footer">
+                    <button class="btn btn-ghost" id="tut-btn-prev" style="padding:4px 10px; font-size:0.8rem;">◀ Xem lại</button>
+                    <button class="btn btn-primary" id="tut-btn-next" style="padding:4px 14px; font-size:0.8rem;">Đã hiểu ▶</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Re-open Tutorial Button -->
+        <button id="tut-reopen-btn" class="tut-reopen-btn hidden hud-interactive" title="Mở lại hướng dẫn từng bước">
+            <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>
+            <span>Hướng Dẫn Viên</span>
+        </button>
+
+        <!-- Event Log -->
+        <div class="event-log hud-interactive" id="event-log">
+            <div class="log-item">
+                <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a3 3 0 0 0-3 3c0 1.31.84 2.41 2 2.83V11H7a5 5 0 0 0-5 5v1h2v-1a3 3 0 0 1 3-3h4v6.17c-1.16.42-2 1.52-2 2.83a3 3 0 0 0 6 0c0-1.31-.84-2.41-2-2.83V13h4a3 3 0 0 1 3 3v1h2v-1a5 5 0 0 0-5-5h-4V7.83c1.16-.42 2-1.52 2-2.83a3 3 0 0 0-3-3zm0 2a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
+                <em>Chào mừng bạn đến với Catan: Seafarers 3D!</em>
+            </div>
+        </div>
+
+        <!-- Dice Area -->
+        <div class="dice-area hud-interactive">
+            <div class="dice-display" id="dice-display">
+                <svg class="mono-icon" style="width:24px;height:24px;" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm0-8c-.83 0-1.5-.67-1.5-1.5S11.17 6 12 6s1.5.67 1.5 1.5S12.83 9 12 9z"/></svg>
+                <span id="dice-val-text">--</span>
+            </div>
+            <button class="btn btn-primary" id="btn-roll" style="font-size:1.05rem; padding:10px 20px; display:inline-flex; align-items:center; gap:8px;">
+                <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm0-8c-.83 0-1.5-.67-1.5-1.5S11.17 6 12 6s1.5.67 1.5 1.5S12.83 9 12 9z"/></svg>
+                <span>Đổ xúc xắc</span>
+            </button>
+        </div>
+
+        <!-- Bottom Controls Bar -->
+        <div class="bottom-bar hud-interactive">
+            <div class="resources">
+                <div class="res-card" data-res="LUMBER" title="Gỗ (Lumber) - Bấm để xem chi tiết & công thức">
+                    <div class="res-card-name">
+                        <img src="assets/cards/card_lumber.png" alt="Gỗ" class="res-mini-thumb">
+                        <span>Gỗ</span>
+                    </div>
+                    <div class="res-val" id="res-wood">0</div>
+                    <div class="res-card-hint">Chạm xem</div>
+                </div>
+                <div class="res-card" data-res="BRICK" title="Gạch (Brick) - Bấm để xem chi tiết & công thức">
+                    <div class="res-card-name">
+                        <img src="assets/cards/card_brick.png" alt="Gạch" class="res-mini-thumb">
+                        <span>Gạch</span>
+                    </div>
+                    <div class="res-val" id="res-brick">0</div>
+                    <div class="res-card-hint">Chạm xem</div>
+                </div>
+                <div class="res-card" data-res="GRAIN" title="Lúa (Grain) - Bấm để xem chi tiết & công thức">
+                    <div class="res-card-name">
+                        <img src="assets/cards/card_grain.png" alt="Lúa" class="res-mini-thumb">
+                        <span>Lúa</span>
+                    </div>
+                    <div class="res-val" id="res-wheat">0</div>
+                    <div class="res-card-hint">Chạm xem</div>
+                </div>
+                <div class="res-card" data-res="WOOL" title="Cừu (Wool) - Bấm để xem chi tiết & công thức">
+                    <div class="res-card-name">
+                        <img src="assets/cards/card_wool.png" alt="Cừu" class="res-mini-thumb">
+                        <span>Cừu</span>
+                    </div>
+                    <div class="res-val" id="res-sheep">0</div>
+                    <div class="res-card-hint">Chạm xem</div>
+                </div>
+                <div class="res-card" data-res="ORE" title="Quặng (Ore) - Bấm để xem chi tiết & công thức">
+                    <div class="res-card-name">
+                        <img src="assets/cards/card_ore.png" alt="Quặng" class="res-mini-thumb">
+                        <span>Quặng</span>
+                    </div>
+                    <div class="res-val" id="res-ore">0</div>
+                    <div class="res-card-hint">Chạm xem</div>
+                </div>
+                <div class="res-card" data-res="GOLD" title="Vàng (Gold) - Bấm để xem chi tiết & công thức">
+                    <div class="res-card-name">
+                        <img src="assets/cards/card_gold.png" alt="Vàng" class="res-mini-thumb">
+                        <span>Vàng</span>
+                    </div>
+                    <div class="res-val" id="res-gold">0</div>
+                    <div class="res-card-hint">Chạm xem</div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <div class="actions-row">
+                    <button class="btn btn-ghost" id="btn-trade">
+                        <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M4 10h3v7H4zm6.5 0h3v7h-3zM2 19h20v3H2zm15-9h3v7h-3zm-5-9L2 6v2h20V6z"/></svg>
+                        Đổi Cảng / Ngân Hàng
+                    </button>
+                    <button class="btn btn-ghost" id="btn-dev-buy">
+                        <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
+                        Mua Thẻ PT
+                    </button>
+                    <button class="btn btn-ghost" id="btn-dev-view">
+                        <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm0-8c-.83 0-1.5-.67-1.5-1.5S11.17 6 12 6s1.5.67 1.5 1.5S12.83 9 12 9z"/></svg>
+                        Thẻ Của Bạn (0)
+                    </button>
+                </div>
+                <div class="actions-row">
+                    <button class="btn btn-primary" id="btn-road" title="Chi phí: 1 Gạch, 1 Gỗ">
+                        <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M18.1 4H5.9L3.5 20h17l-2.4-16zM11 16H9v-3h2v3zm0-5H9V8h2v3zm4 5h-2v-3h2v3zm0-5h-2V8h2v3z"/></svg>
+                        Xây Đường
+                    </button>
+                    <button class="btn btn-primary" id="btn-ship" title="Chi phí: 1 Gỗ, 1 Cừu">
+                        <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M20 21c-1.39 0-2.78-.47-4-1.32-2.44 1.71-5.56 1.71-8 0C6.78 20.53 5.39 21 4 21H2v2h2c1.38 0 2.74-.35 4-.99 2.52 1.29 5.48 1.29 8 0 1.26.65 2.62.99 4 .99h2v-2h-2zM3.95 19H4c1.6 0 3.02-.88 4-2 .98 1.12 2.4 2 4 2s3.02-.88 4-2c.98 1.12 2.4 2 4 2h.05l1.89-6.68c.08-.26.06-.54-.06-.78s-.33-.41-.6-.46L19 13.01V5.5c0-.83-.67-1.5-1.5-1.5H16V2h-2v2h-4V2H8v2H6.5C5.67 4 5 4.67 5 5.5v7.51l-2.28.07c-.27.05-.48.22-.6.46s-.14.52-.06.78L3.95 19z"/></svg>
+                        Đóng Tàu
+                    </button>
+                    <button class="btn btn-primary" id="btn-settlement" title="Chi phí: 1 Gạch, 1 Gỗ, 1 Lúa, 1 Cừu">
+                        <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                        Xây Định Cư
+                    </button>
+                    <button class="btn btn-primary" id="btn-city" title="Chi phí: 2 Lúa, 3 Quặng">
+                        <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M15 11V5l-3-3-3 3v2H3v14h18V11h-6zm-8 7H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V8h2v2zm6 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V8h2v2zm0-4h-2V4h2v2zm6 12h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>
+                        Lên Thành Phố
+                    </button>
+                </div>
+                <button class="btn btn-danger" id="btn-end-turn" style="margin-top: 4px; padding: 10px; font-weight:bold; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
+                    <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
+                    Kết Thúc Lượt
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bank Trade Modal -->
+    <div class="dialog-overlay hidden" id="trade-modal">
+        <div class="dialog-box">
+            <h3 style="color:var(--gold); margin-top:0; display:flex; align-items:center; gap:8px;">
+                <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M4 10h3v7H4zm6.5 0h3v7h-3zM2 19h20v3H2zm15-9h3v7h-3zm-5-9L2 6v2h20V6z"/></svg>
+                Đổi tài nguyên với Ngân Hàng
+            </h3>
+            <p style="font-size:0.85rem; color:#aac4e0;">Chọn loại tài nguyên muốn đổi và nhận về:</p>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin:16px 0;">
+                <div>
+                    <label style="font-size:0.8rem; display:block; margin-bottom:4px;">Đưa ra:</label>
+                    <select id="trade-give" style="padding:6px; background:#07162c; color:#fff; border:1px solid var(--border); border-radius:0 !important;">
+                        <option value="LUMBER">Gỗ</option>
+                        <option value="BRICK">Gạch</option>
+                        <option value="GRAIN">Lúa</option>
+                        <option value="WOOL">Cừu</option>
+                        <option value="ORE">Quặng</option>
+                    </select>
+                </div>
+                <div style="font-size:1.5rem; color:var(--gold);">➔</div>
+                <div>
+                    <label style="font-size:0.8rem; display:block; margin-bottom:4px;">Nhận về (1):</label>
+                    <select id="trade-get" style="padding:6px; background:#07162c; color:#fff; border:1px solid var(--border); border-radius:0 !important;">
+                        <option value="GRAIN">Lúa</option>
+                        <option value="LUMBER">Gỗ</option>
+                        <option value="BRICK">Gạch</option>
+                        <option value="WOOL">Cừu</option>
+                        <option value="ORE">Quặng</option>
+                    </select>
+                </div>
+            </div>
+            <div style="font-size:0.85rem; color:#ffdd88; margin-bottom:16px;" id="trade-rate-info">Tỷ lệ: 4 đổi 1</div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-ghost" id="btn-close-trade" style="flex:1; border-radius:0 !important;">Hủy</button>
+                <button class="btn btn-primary" id="btn-confirm-trade" style="flex:1; border-radius:0 !important;">Xác nhận đổi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="dialog-overlay hidden" id="settings-modal" style="z-index: 10002; backdrop-filter: blur(8px);">
+        <div class="dialog-box settings-dialog-box" style="max-width: 480px; width: 92%;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,215,0,0.3); padding-bottom:10px; margin-bottom:16px;">
+                <h3 style="color:var(--gold); margin:0; display:flex; align-items:center; gap:8px; font-size:1.2rem;">
+                    <svg class="mono-icon" style="width:22px;height:22px;" viewBox="0 0 24 24"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                    <span>CÀI ĐẶT TRẬN ĐẤU</span>
+                </h3>
+                <button class="btn btn-ghost btn-sm" id="btn-close-settings" style="padding:2px 8px; font-size:1rem;">✕</button>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:14px;">
+                <!-- Section: Âm Thanh -->
+                <div class="settings-group">
+                    <div class="settings-group-title">
+                        <svg class="mono-icon" style="width:16px;height:16px;" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/></svg>
+                        <span>ÂM THANH & NHẠC NỀN</span>
+                    </div>
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-label-title">Nhạc nền (BGM)</div>
+                            <div class="settings-label-desc">Bật hoặc tắt nhạc nền của phòng chơi</div>
+                        </div>
+                        <button class="btn btn-ghost" id="game-music-btn" style="padding:5px 12px; font-size:0.8rem; font-weight:700; display:inline-flex; align-items:center; gap:6px; min-height:30px;">
+                            <svg class="mono-icon" style="width:16px;height:16px;" viewBox="0 0 24 24"><path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                            <span>Tắt Nhạc</span>
+                        </button>
+                    </div>
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-label-title">Âm lượng nhạc</div>
+                            <div class="settings-label-desc">Điều chỉnh độ lớn giai điệu</div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <input type="range" id="bgm-volume-slider" min="0" max="100" value="35" style="width:100px; accent-color:var(--gold); cursor:pointer;">
+                            <span id="bgm-volume-label" style="font-size:0.8rem; font-weight:700; color:var(--gold); min-width:34px; text-align:right;">35%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Bàn cờ & Góc nhìn -->
+                <div class="settings-group">
+                    <div class="settings-group-title">
+                        <svg class="mono-icon" style="width:16px;height:16px;" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                        <span>BÀN CỜ & HIỂN THỊ</span>
+                    </div>
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-label-title">Camera Tĩnh (Bao Quát)</div>
+                            <div class="settings-label-desc">Góc nhìn từ trên cao bao quát toàn bộ bản đồ</div>
+                        </div>
+                        <button class="btn btn-primary" id="btn-static-camera" style="padding:5px 12px; font-size:0.8rem; font-weight:700; min-height:30px; display:inline-flex; align-items:center; gap:5px;">
+                            <svg class="mono-icon" style="width:16px;height:16px;" viewBox="0 0 24 24"><path fill="currentColor" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                            <span>Bao Quát</span>
+                        </button>
+                    </div>
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-label-title">Góc nhìn 3D mặc định</div>
+                            <div class="settings-label-desc">Đặt lại vị trí xoay và phóng to ban đầu</div>
+                        </div>
+                        <button class="btn btn-ghost" id="btn-reset-camera" style="padding:5px 12px; font-size:0.8rem; font-weight:700; min-height:30px;">
+                            Góc 3D
+                        </button>
+                    </div>
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-label-title">Khóa xoay bàn cờ</div>
+                            <div class="settings-label-desc">Giữ góc nhìn cố định, tránh bị xoay khi chạm/kéo</div>
+                        </div>
+                        <button class="btn btn-ghost" id="btn-lock-rotation" style="padding:5px 12px; font-size:0.8rem; font-weight:700; min-height:30px;">
+                            <span>Đang Mở</span>
+                        </button>
+                    </div>
+                </div>
+
+
+                <!-- Section: Sẵn sàng nâng cấp tiếp theo -->
+                <div style="border-top:1px dashed rgba(255,215,0,0.2); padding-top:8px; text-align:center;">
+                    <div style="font-size:0.75rem; color:#8faac9;">
+                        Phần cài đặt sẽ tiếp tục được nâng cấp thêm nhiều tùy chọn mới.
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:16px; text-align:right;">
+                <button class="btn btn-primary" id="btn-close-settings-ok" style="padding:8px 24px; font-weight:800; width:100%;">
+                    Xong
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Discard Modal for 7 Roll -->
+    <div class="dialog-overlay hidden" id="discard-modal">
+        <div class="dialog-box" style="text-align:center;">
+            <div style="margin-bottom:6px;">
+                <svg class="mono-icon" style="width:40px;height:40px;color:#ff5252;" viewBox="0 0 24 24"><path fill="currentColor" d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+            </div>
+            <h3 style="color:#ff6b6b; margin-top:0;">Bị Cướp (Số 7) - Phải bỏ bài!</h3>
+            <p id="discard-info" style="font-size:0.9rem; color:#d1e4ff;">Bạn có trên 7 thẻ. Bạn phải bỏ bớt một nửa số thẻ.</p>
+            <div id="discard-controls" style="display:flex; justify-content:center; gap:8px; margin:16px 0; flex-wrap:wrap;">
+                <!-- Populated dynamically via main3d.js -->
+            </div>
+            <div style="font-weight:bold; color:var(--gold); margin-bottom:14px;" id="discard-count-status">Đã chọn: 0 / 0</div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-ghost" id="btn-auto-discard" style="flex:1; border-radius:0 !important;">Bỏ ngẫu nhiên</button>
+                <button class="btn btn-primary" id="btn-confirm-discard" style="flex:1; border-radius:0 !important;" disabled>Xác nhận bỏ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Win Screen Modal with 3D Avatar Celebration -->
+    <div class="dialog-overlay hidden" id="win-modal" style="z-index: 9999;">
+        <div class="dialog-box" style="text-align:center; max-width: 520px; width: 92%; padding: 18px 20px; max-height: 94vh; overflow-y: auto; background: linear-gradient(160deg, #13345a 0%, #091729 100%); border: 2px solid #ffd700; box-shadow: 0 0 35px rgba(255, 215, 0, 0.4);">
+            <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:2px;">
+                <svg class="mono-icon" style="width:24px;height:24px;color:var(--gold);" viewBox="0 0 24 24"><path fill="currentColor" d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .55-.45 1-1 1H6c-.55 0-1-.45-1-1v-1h14v1z"/></svg>
+                <h2 id="win-title" style="color:var(--gold); margin:0; font-size:1.45rem; text-shadow:0 0 12px rgba(255,215,0,0.5);">Chiến Thắng Tuyệt Đối!</h2>
+                <svg class="mono-icon" style="width:24px;height:24px;color:var(--gold);" viewBox="0 0 24 24"><path fill="currentColor" d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .55-.45 1-1 1H6c-.55 0-1-.45-1-1v-1h14v1z"/></svg>
+            </div>
+            <p id="win-desc" style="color:#d1e4ff; margin: 4px 0 10px 0; font-size:0.92rem;">Chúc mừng bạn đã đạt 13 Điểm Chiến Thắng!</p>
+            
+            <!-- 3D Victory Avatar Stage -->
+            <div id="win-avatar-stage" style="width: 100%; height: 280px; position: relative; border-radius: 6px; border: 1.5px solid rgba(255,215,0,0.4); background: radial-gradient(circle at center, #1b3d68 0%, #071322 100%); overflow: hidden; margin-bottom: 8px;">
+            </div>
+            
+            <div style="font-size:0.75rem; color:#85a9cf; margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:5px;">
+                <svg class="mono-icon" style="width:14px;height:14px;" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+                <span>Dùng chuột / vuốt tay để xoay nhân vật 3D 360°</span>
+            </div>
+
+            <!-- Action buttons -->
+            <div style="display:flex; flex-direction:column; gap:8px; width:100%; margin-top:8px;">
+                <div style="display:flex; gap:10px; justify-content:center;">
+                    <button class="btn btn-warning" id="btn-win-celebrate" style="flex:1; padding:9px 14px; font-weight:700; display:inline-flex; align-items:center; justify-content:center; gap:6px; background:linear-gradient(135deg, #f59e0b, #d97706); border:none; color:#fff; border-radius:4px !important; cursor:pointer;" title="Nhảy ăn mừng trên bục vinh quang">
+                        <span>Nhảy Ăn Mừng</span>
+                    </button>
+                    <button class="btn btn-success" id="btn-win-rematch" style="flex:1; padding:9px 14px; font-weight:700; display:inline-flex; align-items:center; justify-content:center; gap:6px; background:linear-gradient(135deg, #10b981, #059669); border:none; color:#fff; border-radius:4px !important; cursor:pointer;" title="Bắt đầu ván đấu mới ngay với các người chơi hiện tại">
+                        <span>Chơi Lại</span>
+                    </button>
+                </div>
+                <!-- Nút Đóng Phòng: CHỈ HIỂN THỊ CHO CHỦ PHÒNG -->
+                <button class="btn btn-danger" id="btn-win-close-room" style="display:none; width:100%; padding:9px 14px; font-weight:700; align-items:center; justify-content:center; gap:6px; background:linear-gradient(135deg, #ef4444, #b91c1c); border:none; color:#fff; border-radius:4px !important; cursor:pointer;" title="Giải tán phòng và quay về sảnh chờ (Chỉ dành cho Chủ phòng)">
+                    <svg class="mono-icon" style="width:18px;height:18px;" viewBox="0 0 24 24"><path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                    <span>Đóng Phòng</span>
+                </button>
+                <!-- Nút Rời Phòng: HIỂN THỊ CHO CÁC THÀNH VIÊN KHÁC (KHÔNG PHẢI CHỦ PHÒNG) -->
+                <button class="btn btn-secondary" id="btn-win-leave-room" style="display:none; width:100%; padding:9px 14px; font-weight:700; align-items:center; justify-content:center; gap:6px; background:linear-gradient(135deg, #475569, #334155); border:1px solid rgba(255,255,255,0.2); color:#fff; border-radius:4px !important; cursor:pointer;" title="Rời phòng và quay về sảnh chờ">
+                    <svg class="mono-icon" style="width:18px;height:18px;" viewBox="0 0 24 24"><path fill="currentColor" d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+                    <span>Rời Phòng</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Waiting for Friends Modal -->
+    <div class="dialog-overlay hidden" id="waiting-modal">
+        <div class="dialog-box" style="text-align:center;">
+            <div style="margin-bottom:8px;">
+                <svg class="mono-icon" style="width:44px;height:44px;color:var(--gold);" viewBox="0 0 24 24"><path fill="currentColor" d="M6 2v6h.01L6 8.01 10 12l-4 4 .01.01H6V22h12v-5.99h-.01L18 16l-4-4 4-3.99-.01-.01H18V2H6zm10 14.5V20H8v-3.5l4-4 4 4zm-4-5l-4-4V4h8v3.5l-4 4z"/></svg>
+            </div>
+            <h2 style="color:var(--gold); margin-top:0;">Phòng Chờ Trận Đấu</h2>
+            <p style="color:#aac4e0; font-size:0.95rem; margin-bottom:12px;">Mã phòng: <span id="waiting-room-code" style="color:var(--gold); font-size:1.5rem; font-weight:bold; letter-spacing:2px; background:rgba(0,0,0,0.4); padding:3px 12px; border-radius:0 !important; border:1px solid var(--border);">--</span></p>
+            <div style="background:rgba(0,0,0,0.3); border-radius:0 !important; padding:12px; margin:16px 0; border:1px solid var(--border);">
+                <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:8px;">Người chơi đã vào:</div>
+                <div id="waiting-player-list" style="font-weight:bold; font-size:1.1rem; color:#fff;">Đang tải...</div>
+                <div id="waiting-status-text" style="font-size:0.85rem; color:#f0c040; margin-top:8px;">Đang đợi bạn bè nhập mã phòng...</div>
+            </div>
+
+            <!-- Nút Mời Bạn Bè -->
+            <div style="margin-bottom: 12px;">
+                <button class="btn btn-secondary" id="btn-open-invite" style="width:100%; padding:10px; font-weight:bold; font-size:0.95rem; display:inline-flex; align-items:center; justify-content:center; gap:8px; border-radius:4px !important; border:1px solid #38bdf8; color:#e0f2fe; background:linear-gradient(180deg, rgba(14, 116, 144, 0.45) 0%, rgba(3, 105, 161, 0.35) 100%); cursor:pointer;">
+                    <svg class="mono-icon" style="width:18px;height:18px;" viewBox="0 0 24 24"><path fill="currentColor" d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    <span>Mời Bạn Bè Vào Chơi</span>
+                </button>
+            </div>
+            
+            <!-- Controls exclusively for Room Host -->
+            <div id="waiting-host-actions" style="display:flex; flex-direction:column; gap:8px;">
+                <button class="btn btn-primary" id="btn-start-game" style="width:100%; padding:11px; font-weight:bold; font-size:1rem; display:inline-flex; align-items:center; justify-content:center; gap:8px; border-radius:4px !important;">
+                    <span>Bắt Đầu Trận Đấu</span>
+                </button>
+                <button class="btn btn-ghost" id="btn-start-with-bots" style="width:100%; padding:9px; border-radius:4px !important; display:inline-flex; align-items:center; justify-content:center; gap:8px; font-size:0.85rem;">
+                    <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h4a2 2 0 0 1 2 2v2h1a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-1v1a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-1H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h1V9a2 2 0 0 1 2-2h4V5.73A2 2 0 0 1 10 4a2 2 0 0 1 2-2zm-4 9a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm8 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-9 6h10v-1H7v1z"/></svg>
+                    <span>Bắt đầu ngay (Lấp slot còn trống bằng Bot AI)</span>
+                </button>
+                <button class="btn btn-ghost" id="btn-waiting-host-leave-room" onclick="window.leaveRoomAndExit && window.leaveRoomAndExit()" style="width:100%; padding:8px; border-radius:4px !important; display:inline-flex; align-items:center; justify-content:center; gap:8px; font-size:0.85rem; border-color:rgba(255,255,255,0.25); color:#cbd5e1; cursor:pointer;">
+                    <span>Thoát phòng</span>
+                </button>
+            </div>
+
+            <!-- Notice for Room Guests (Members cannot start match) -->
+            <div id="waiting-guest-notice" style="display:none; text-align:center; padding:12px; background:rgba(0,0,0,0.3); border:1px dashed rgba(255,215,0,0.35); border-radius:6px; margin-top:8px;">
+                <div style="font-size:0.92rem; color:#f0c040; font-weight:bold; margin-bottom:6px;">
+                    Đang chờ Chủ phòng bắt đầu trận đấu...
+                </div>
+                <div style="font-size:0.8rem; color:#aac4e0; margin-bottom:12px; line-height:1.4;">
+                    Chỉ có chủ phòng mới có quyền bắt đầu trận đấu. Khi chủ phòng bắt đầu, tất cả người chơi trong phòng sẽ cùng vào bàn cờ chơi chung.
+                </div>
+                <button class="btn btn-ghost btn-sm" id="btn-waiting-leave-room" onclick="window.leaveRoomAndExit && window.leaveRoomAndExit()" style="padding:6px 16px; font-size:0.82rem; border-color:rgba(255,255,255,0.25);">
+                    Rời phòng
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invite Friends Modal -->
+    <div class="dialog-overlay hidden" id="invite-friends-modal" style="z-index: 10003;">
+        <div class="dialog-box" style="text-align:center; max-width: 460px; width: 92%; border: 2px solid #38bdf8; box-shadow: 0 0 30px rgba(56, 189, 248, 0.35); background: linear-gradient(160deg, #18283f 0%, #0d1726 100%);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px;">
+                <h3 style="color:#38bdf8; margin:0; display:flex; align-items:center; gap:8px; font-size:1.15rem;">
+                    <span>Mời Bạn Bè Vào Phòng</span>
+                </h3>
+                <button id="btn-close-invite" style="background:none; border:none; color:var(--text-muted); font-size:1.4rem; cursor:pointer; padding:0 6px;">✕</button>
+            </div>
+            <p style="font-size:0.82rem; color:#94a3b8; margin:0 0 12px 0; text-align:left;">
+                Chỉ những bạn bè đang <b style="color:#4ade80;">Online</b> mới có thể nhận lời mời vào phòng chơi ngay lập tức:
+            </p>
+            <div id="invite-friends-list" style="max-height: 280px; overflow-y: auto; text-align: left; padding: 4px; display: flex; flex-direction: column; gap: 8px;">
+                <div style="text-align:center; color:var(--text-muted); padding:16px;">Đang tải danh sách bạn bè...</div>
+            </div>
+            <div style="margin-top:14px; text-align:right;">
+                <button class="btn btn-ghost btn-sm" id="btn-close-invite-2" style="padding:6px 16px;">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Paused Modal (Waiting for disconnected player) -->
+    <div class="dialog-overlay hidden" id="player-paused-modal" style="z-index: 10002;">
+        <div class="dialog-box" style="text-align:center; max-width: 480px; width: 92%; border: 2px solid #f59e0b; box-shadow: 0 0 45px rgba(245, 158, 11, 0.45); background: linear-gradient(160deg, #18283f 0%, #0d1726 100%);">
+            <div style="margin-bottom:8px;">
+                <svg class="mono-icon" style="width:48px;height:48px;color:#fbbf24;" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </div>
+            <h2 style="color:#fbbf24; margin: 0 0 6px 0; font-size: 1.35rem; letter-spacing: 0.5px;">TRẬN ĐẤU ĐANG TẠM DỪNG</h2>
+            <div style="background: rgba(0,0,0,0.4); border-radius: 6px; padding: 14px; margin: 12px 0; border: 1px solid rgba(251, 191, 36, 0.25);">
+                <div style="font-size: 0.95rem; color: #f3f4f6; line-height: 1.5;" id="paused-player-msg">
+                    Đang chờ người chơi <strong id="paused-player-name" style="color: #fbbf24; font-size: 1.05rem;">--</strong> vào lại phòng...
+                </div>
+                <div style="font-size: 0.82rem; color: #9ca3af; margin-top: 8px;">
+                    Trận đấu đang tạm dừng để chờ các người chơi quay trở lại. Ván đấu sẽ tự động tiếp tục ngay khi tất cả người chơi vào lại phòng.
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 14px;">
+                <button class="btn btn-danger" id="btn-paused-leave-room" onclick="if(confirm('Bạn có chắc chắn muốn rời khỏi phòng và quay về sảnh chờ?')) { if(window.leaveRoomAndExit) window.leaveRoomAndExit(); else window.location.href='lobby.html'; }" style="flex: 1; padding: 9px; font-weight: 700; border-radius: 4px !important;">
+                    Rời Phòng Về Sảnh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dev Cards Modal -->
+    <div class="dialog-overlay hidden" id="dev-modal" style="z-index: 10000; backdrop-filter: blur(8px);">
+        <div class="dialog-box" style="max-width: 680px; width: 94%; max-height: 90vh; overflow-y: auto; padding: 22px; border: 2px solid var(--gold); box-shadow: 0 16px 50px rgba(0,0,0,0.85), 0 0 30px rgba(255,215,0,0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,215,0,0.3); padding-bottom:10px; margin-bottom:12px;">
+                <h3 style="color:var(--gold); margin:0; display:flex; align-items:center; gap:8px; font-size:1.25rem;">Thẻ Phát Triển Của Bạn</h3>
+                <button class="btn btn-ghost btn-sm" id="btn-close-dev-x" style="padding:2px 8px;">✕</button>
+            </div>
+            <div id="dev-cards-list" style="margin-bottom:16px;">
+                <!-- Populated dynamically via main3d.js -->
+            </div>
+            <button class="btn btn-primary" id="btn-close-dev" style="width:100%; padding:10px; font-weight:bold;">Đóng</button>
+        </div>
+    </div>
+
+    <!-- Official Player Info & Public Stats Modal -->
+    <div class="dialog-overlay hidden" id="player-info-modal">
+        <div class="dialog-box" style="max-width:540px; width:92%;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:14px;">
+                <h3 id="pinfo-title" style="color:var(--gold); margin:0; font-size:1.2rem;">Hồ Sơ Người Chơi (Chuẩn Luật Catan)</h3>
+                <button class="btn btn-ghost btn-sm" id="btn-close-pinfo" style="padding:2px 8px;">✕</button>
+            </div>
+            
+            <div id="pinfo-body" style="font-size:0.9rem; color:#d1e4ff;">
+                <!-- Populated dynamically via main3d.js -->
+            </div>
+
+            <div style="margin-top:16px; text-align:right;">
+                <button class="btn btn-primary" id="btn-close-pinfo-ok" style="padding:6px 20px;">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Build Node Modal -->
+    <div class="dialog-overlay hidden" id="confirm-build-modal" style="z-index: 10005; backdrop-filter: blur(8px);">
+        <div class="dialog-box" style="text-align: center; max-width: 440px; width: 92%; border: 2px solid var(--gold); box-shadow: 0 16px 50px rgba(0,0,0,0.85), 0 0 30px rgba(255,215,0,0.25); background: linear-gradient(160deg, #18283f 0%, #0d1726 100%); padding: 22px;">
+            <div style="display:none;" id="confirm-build-icon"></div>
+            <h3 id="confirm-build-title" style="color: var(--gold); margin: 0 0 8px 0; font-size: 1.25rem;">Xác Nhận Xây Định Cư</h3>
+            <div id="confirm-build-desc" style="font-size: 0.9rem; color: #cbd5e1; margin-bottom: 14px; line-height: 1.5;">
+                Bạn có chắc chắn muốn xây dựng tại vị trí này không?
+            </div>
+            
+            <div id="confirm-build-details" style="background: rgba(0,0,0,0.4); border-radius: 6px; padding: 12px; margin-bottom: 18px; border: 1px solid rgba(255,215,0,0.25); text-align: left; font-size: 0.85rem; color: #e2edff;">
+                <!-- Dynamically populated: adjacent tiles, cost -->
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn btn-ghost" id="btn-cancel-build" style="flex: 1; padding: 10px; font-weight: 600; border-radius: 4px !important; cursor: pointer;">
+                    ✕ Hủy Bỏ
+                </button>
+                <button class="btn btn-primary" id="btn-confirm-build" style="flex: 1.2; padding: 10px; font-weight: 700; border-radius: 4px !important; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-color: #34d399; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); cursor: pointer;">
+                    ✓ Xác Nhận Xây
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Room Closed / Disbanded Notification Modal -->
+    <div class="dialog-overlay hidden" id="room-closed-modal" style="z-index: 99999; backdrop-filter: blur(10px);">
+        <div class="dialog-box" style="text-align:center; max-width:440px; border-color: #ff5252; box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 25px rgba(255, 82, 82, 0.4);">
+            <svg class="mono-icon" style="width:52px;height:52px;color:#ff6b6b;margin-bottom:8px;" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 10h-2v-2h2v2z"/></svg>
+            <h2 style="color:#ff6b6b; margin-top:0; font-size:1.45rem;">Phòng Chơi Đã Đóng!</h2>
+            <p id="room-closed-desc" style="color:#e2edff; font-size:0.95rem; line-height:1.55; margin-bottom:22px;">
+                Chủ phòng đã giải tán phòng chơi này. Bấm nút bên dưới để trở về sảnh chờ!
+            </p>
+            <button class="btn btn-primary" id="btn-return-lobby" style="padding:12px 28px; width:100%; font-size:1.05rem; font-weight:800;">
+                Trở về Sảnh Chờ Ngay
+            </button>
+        </div>
+    </div>
+
+    <!-- Card Detail / Inspector Modal -->
+    <div class="dialog-overlay hidden" id="card-inspect-modal" style="z-index: 10000; backdrop-filter: blur(8px);">
+        <div class="dialog-box" style="max-width: 580px; width: 94%; max-height: 90vh; overflow-y: auto; padding: 22px; border: 2px solid var(--gold); box-shadow: 0 16px 50px rgba(0,0,0,0.85), 0 0 30px rgba(255,215,0,0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,215,0,0.3); padding-bottom:10px; margin-bottom:14px;">
+                <h3 id="card-inspect-title" style="color:var(--gold); margin:0; font-size:1.25rem; display:flex; align-items:center; gap:8px;">Chi Tiết Thẻ</h3>
+                <button class="btn btn-ghost btn-sm" id="btn-close-card-inspect" style="padding:2px 8px;">✕</button>
+            </div>
+            
+            <div id="card-inspect-body">
+                <!-- Dynamically populated -->
+            </div>
+
+            <div style="margin-top:18px; display:flex; gap:10px; justify-content:flex-end;">
+                <button class="btn btn-primary" id="btn-card-inspect-action" style="padding:8px 18px; font-weight:bold;">Đổi Tài Nguyên Này</button>
+                <button class="btn btn-ghost" id="btn-card-inspect-close" style="padding:8px 16px;">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+<!-- Comprehensive Rules & Guide Modal -->
+    <div class="dialog-overlay hidden" id="rules-modal" style="z-index: 10001; backdrop-filter: blur(8px);">
+        <div class="dialog rules-dialog">
+            <div class="rules-header">
+                <div class="rules-title-box">
+                    <svg class="mono-icon" style="width:32px;height:32px;color:var(--gold);" viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                    <div>
+                        <h2 class="rules-title">TOÀN BỘ LUẬT CHƠI CATAN & SEAFARERS</h2>
+                        <div class="rules-subtitle">Cẩm nang hướng dẫn chi tiết từ A đến Z - Quy chuẩn quốc tế kèm ví dụ thực tế</div>
+                    </div>
+                </div>
+                <button class="rules-close-btn" id="close-rules-btn" title="Đóng hướng dẫn">✕</button>
+            </div>
+
+            <!-- Sticky Category Navigation -->
+            <div class="rules-nav">
+                <button class="rules-nav-btn active" data-target="sec-overview">1. Mục Tiêu & VP</button>
+                <button class="rules-nav-btn" data-target="sec-setup">2. Setup & Luật 2 Cạnh</button>
+                <button class="rules-nav-btn" data-target="sec-turn">3. Cấu Trúc Lượt Chơi</button>
+                <button class="rules-nav-btn" data-target="sec-resources">4. Tài Nguyên & Giá Xây</button>
+                <button class="rules-nav-btn" data-target="sec-seafarers">5. Đại Hải Trình</button>
+                <button class="rules-nav-btn" data-target="sec-robber">6. Tên Cướp & Số 7</button>
+                <button class="rules-nav-btn" data-target="sec-trade">7. Giao Dịch & Cảng</button>
+                <button class="rules-nav-btn" data-target="sec-devcards">8. Thẻ Phát Triển</button>
+                <button class="rules-nav-btn" data-target="sec-tips">9. Mẹo & Chiến Thuật</button>
+            </div>
+
+            <!-- Scrollable Content Body -->
+            <div class="rules-body" id="rules-body">
+                
+                <!-- Section 1: Overview & Victory Points -->
+                <div class="rules-section" id="sec-overview">
+                    <div class="sec-heading">
+                        <span class="sec-badge">PHẦN 1</span>
+                        <h3>MỤC TIÊU CHIẾN THẮNG & ĐIỂM VICTORY POINTS (VP)</h3>
+                    </div>
+                    <p>Trong Catan, người chơi đóng vai trò là những nhà khai hoang trên quần đảo Catan. Bạn sẽ thu thập tài nguyên để xây dựng đường sá, thuyền buồm, khu định cư và nâng cấp lên các thành phố trù phú.</p>
+                    <div class="highlight-box">
+                        <strong>Điều kiện chiến thắng:</strong> Người chơi đầu tiên đạt đủ số Điểm Chiến Thắng (Victory Points - VP) trong lượt của mình sẽ lập tức giành chiến thắng!
+                        <div style="margin-top: 6px; font-weight: 500;">
+                            • Bản đồ Cơ bản: <strong>10 Điểm (10 VP)</strong><br>
+                            • Kịch bản The Four Islands (4 Hòn đảo): <strong>12 Điểm (12 VP)</strong><br>
+                            • Kịch bản Voyages of Discovery (Đại Hải Trình): <strong>13 Điểm (13 VP)</strong>
+                        </div>
+                    </div>
+                    <h4 style="color: var(--gold); margin: 16px 0 8px;">Bảng Tính Điểm Chiến Thắng (VP)</h4>
+                    <div class="rules-table-container">
+                        <table class="rules-table">
+                            <thead>
+                                <tr>
+                                    <th>Hạng Mục</th>
+                                    <th>Số Điểm (VP)</th>
+                                    <th>Mô Tả & Điều Kiện</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Khu Định Cư (Settlement)</strong></td>
+                                    <td><span class="vp-pill">1 VP</span></td>
+                                    <td>Mỗi khu định cư trên bàn cờ mang lại 1 điểm. Bạn bắt đầu ván với 2 định cư (2 VP).</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Thành Phố (City)</strong></td>
+                                    <td><span class="vp-pill">2 VP</span></td>
+                                    <td>Nâng cấp từ Khu định cư (+1 VP so với định cư). Cho gấp đôi sản lượng tài nguyên.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Con Đường Dài Nhất (Longest Road)</strong></td>
+                                    <td><span class="vp-pill">2 VP</span></td>
+                                    <td>Trao cho người đầu tiên nối chuỗi đường/thuyền liên tục từ <strong>5 đoạn</strong> trở lên. Người nào vượt qua kỷ lục sẽ cướp danh hiệu này!</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Đội Quân Mạnh Nhất (Largest Army)</strong></td>
+                                    <td><span class="vp-pill">2 VP</span></td>
+                                    <td>Trao cho người đầu tiên kích hoạt và lật mở tối thiểu <strong>3 thẻ Hiệp Sĩ (Knight)</strong>. Người có số Hiệp sĩ nhiều hơn sẽ giành lấy danh hiệu này.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Thẻ Điểm Ẩn (Victory Point Card)</strong></td>
+                                    <td><span class="vp-pill">1 VP / thẻ</span></td>
+                                    <td>Rút từ xấp Thẻ Phát Triển. Giữ bí mật trên tay cho đến khi đủ điểm tuyên bố thắng cuộc!</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Khám Phá Đảo Mới (Seafarers Bonus)</strong></td>
+                                    <td><span class="vp-pill">+1 đến +2 VP</span></td>
+                                    <td>Điểm thưởng đặc biệt khi bạn vượt biển và xây Khu định cư đầu tiên trên một hòn đảo mới lạ xa bờ.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Section 2: Setup Phase -->
+                <div class="rules-section" id="sec-setup">
+                    <div class="sec-heading">
+                        <span class="sec-badge">PHẦN 2</span>
+                        <h3>GIAI ĐOẠN THIẾT LẬP (SETUP) & QUY TẮC KHOẢNG CÁCH</h3>
+                    </div>
+                    <p>Trước khi bắt đầu các vòng chơi chính, tất cả người chơi tham gia giai đoạn thiết lập ban đầu (Setup) để đặt 2 Khu định cư và 2 Con đường/Thuyền khởi đầu.</p>
+                    
+                    <h4 style="color: var(--gold); margin: 14px 0 6px;">Thứ tự đặt quân (Snake Order):</h4>
+                    <div class="step-card">
+                        <strong>Vòng 1 (Theo chiều kim đồng hồ):</strong>
+                        <div>Người 1 ➔ Người 2 ➔ Người 3 ➔ Người 4. Mỗi người đặt <strong>1 Khu định cư</strong> tại một đỉnh hợp lệ và <strong>1 Con đường (hoặc Thuyền)</strong> nối liền với định cư đó.</div>
+                    </div>
+                    <div class="step-card" style="margin-top: 8px;">
+                        <strong>Vòng 2 (Đảo chiều ngược lại):</strong>
+                        <div>Người 4 ➔ Người 3 ➔ Người 2 ➔ Người 1. Mỗi người đặt tiếp <strong>Khu định cư thứ 2</strong> và <strong>Con đường / Thuyền thứ 2</strong> nối liền với định cư đó.</div>
+                    </div>
+
+                    <div class="alert-box danger-box" style="margin-top: 15px;">
+                        <div style="font-weight: bold; font-size: 1.05rem; margin-bottom: 4px;">QUY TẮC KHOẢNG CÁCH (LUẬT 2 CẠNH - DISTANCE RULE)</div>
+                        <div>Mọi Khu định cư hay Thành phố <strong>BẮT BUỘC phải cách nhau ít nhất 2 cạnh đường trống</strong> (khoảng cách tối thiểu 2 bước cạnh). Bạn <strong>KHÔNG ĐƯỢC PHÉP</strong> đặt định cư ở đỉnh liền kề với bất kỳ công trình nào khác (kể cả của bạn hay đối thủ).</div>
+                    </div>
+
+                    <div class="example-box" style="margin-top: 14px;">
+                        <span class="example-tag">VÍ DỤ VỀ TÀI NGUYÊN KHỞI ĐẦU</span>
+                        <p>Sau khi bạn đặt Khu định cư thứ 2 ở Vòng 2, bạn nhận ngay <strong>1 thẻ tài nguyên</strong> cho mỗi ô đất tiếp giáp với Khu định cư thứ 2 đó:</p>
+                        <div>• Giả sử ở Vòng 2, bạn đặt định cư thứ 2 tại ngã ba giữa: <strong>Rừng rậm</strong>, <strong>Cánh đồng</strong> và <strong>Đồi đất sét</strong>.</div>
+                        <div>• ➔ Bạn nhận ngay lập tức: <strong>1 Gỗ + 1 Lúa + 1 Gạch</strong> vào túi đồ để sẵn sàng cho lượt chơi đầu tiên!</div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Turn Structure -->
+                <div class="rules-section" id="sec-turn">
+                    <div class="sec-heading">
+                        <span class="sec-badge">PHẦN 3</span>
+                        <h3>CẤU TRÚC MỘT LƯỢT CHƠI (THE TURN SEQUENCE)</h3>
+                    </div>
+                    <p>Khi đến lượt của bạn, lượt chơi diễn ra tuần tự qua các giai đoạn sau:</p>
+
+                    <div class="phase-container">
+                        <div class="phase-card">
+                            <div class="phase-num">1</div>
+                            <div class="phase-content">
+                                <div class="phase-title">GIAI ĐOẠN SẢN XUẤT (Gieo Xúc Xắc)</div>
+                                <p>Bạn bấm nút <strong>"Gieo Xúc Xắc"</strong> (tung 2 viên xí ngầu, tổng điểm từ 2 đến 12):</p>
+                                <ul>
+                                    <li><strong>Nếu ra số 2, 3, 4, 5, 6, 8, 9, 10, 11, 12:</strong> Tất cả các ô đất mang con số này sẽ phát tài nguyên cho TẤT CẢ người chơi có công trình ở đỉnh kề (Định cư = 1 thẻ, Thành phố = 2 thẻ).</li>
+                                    <li><strong>Nếu ra số 7:</strong> Bão cướp bóc kích hoạt! Không ai nhận tài nguyên. Những ai cầm trên 7 thẻ bài bị nộp phạt 1/2, và bạn được di chuyển Tên Cướp/Cướp Biển (Xem Phần 6).</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="phase-card">
+                            <div class="phase-num">2</div>
+                            <div class="phase-content">
+                                <div class="phase-title">GIAI ĐOẠN GIAO DỊCH (Trading)</div>
+                                <p>Bạn có thể trao đổi tài nguyên để tìm kiếm nguyên liệu mình còn thiếu:</p>
+                                <ul>
+                                    <li><strong>Giao dịch với người chơi khác:</strong> Thương lượng tự do (VD: 1 Lúa đổi 1 Đá, 2 Cừu đổi 1 Gỗ...).</li>
+                                    <li><strong>Giao dịch với Ngân hàng:</strong> Tỷ lệ cố định <strong>4 đổi 1</strong> (4 thẻ giống nhau lấy 1 thẻ bất kỳ).</li>
+                                    <li><strong>Giao dịch Cảng biển:</strong> Tỷ lệ ưu đãi <strong>3:1</strong> hoặc <strong>2:1</strong> nếu bạn sở hữu Cảng (Xem Phần 7).</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="phase-card">
+                            <div class="phase-num">3</div>
+                            <div class="phase-content">
+                                <div class="phase-title">GIAI ĐOẠN XÂY DỰNG & DÙNG THẺ (Building & Actions)</div>
+                                <p>Dùng tài nguyên thu thập được để bành trướng lãnh thổ:</p>
+                                <ul>
+                                    <li>Xây Đường sá hoặc Thuyền buồm để kết nối.</li>
+                                    <li>Xây thêm Khu định cư mới hoặc nâng cấp định cư cũ thành Thành phố.</li>
+                                    <li>Mua Thẻ Phát Triển hoặc kích hoạt 1 thẻ trên tay.</li>
+                                    <li>Khi hoàn tất mọi việc, bấm <strong>"HẾT LƯỢT"</strong> để nhường lượt cho người chơi tiếp theo.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Resources & Costs -->
+                <div class="rules-section" id="sec-resources">
+                    <div class="sec-heading">
+                        <span class="sec-badge">PHẦN 4</span>
+                        <h3>5 LOẠI TÀI NGUYÊN & BẢNG GIÁ XÂY DỰNG</h3>
+                    </div>
+
+                    <h4 style="color: var(--gold); margin-bottom: 10px;">Các Loại Ô Đất & Tài Nguyên Tương Ứng</h4>
+                    <div class="resource-grid">
+                        <div class="res-item" onclick="window.__inspectCard && window.__inspectCard('LUMBER')" title="Xem chi tiết thẻ Gỗ">
+                            <div class="res-card-frame">
+                                <img src="assets/cards/card_lumber.png" alt="Thẻ Gỗ (Lumber)" class="res-card-img" loading="lazy">
+                            </div>
+                            <div class="res-info">
+                                <span class="res-name" style="color: #4ade80;">Gỗ (Lumber)</span>
+                                <span class="res-source">🌲 Rừng Rậm</span>
+                                <small class="res-lore">Đóng thuyền buồm & đường bộ</small>
+                            </div>
+                        </div>
+                        <div class="res-item" onclick="window.__inspectCard && window.__inspectCard('BRICK')" title="Xem chi tiết thẻ Gạch">
+                            <div class="res-card-frame">
+                                <img src="assets/cards/card_brick.png" alt="Thẻ Gạch (Brick)" class="res-card-img" loading="lazy">
+                            </div>
+                            <div class="res-info">
+                                <span class="res-name" style="color: #f87171;">Gạch (Brick)</span>
+                                <span class="res-source">🧱 Đồi Đất Sét</span>
+                                <small class="res-lore">Xây đường & móng định cư</small>
+                            </div>
+                        </div>
+                        <div class="res-item" onclick="window.__inspectCard && window.__inspectCard('WOOL')" title="Xem chi tiết thẻ Cừu">
+                            <div class="res-card-frame">
+                                <img src="assets/cards/card_wool.png" alt="Thẻ Cừu (Wool)" class="res-card-img" loading="lazy">
+                            </div>
+                            <div class="res-info">
+                                <span class="res-name" style="color: #a3e635;">Cừu / Len (Wool)</span>
+                                <span class="res-source">🐑 Đồng Cỏ</span>
+                                <small class="res-lore">May buồm tàu & định cư</small>
+                            </div>
+                        </div>
+                        <div class="res-item" onclick="window.__inspectCard && window.__inspectCard('GRAIN')" title="Xem chi tiết thẻ Lúa">
+                            <div class="res-card-frame">
+                                <img src="assets/cards/card_grain.png" alt="Thẻ Lúa (Grain)" class="res-card-img" loading="lazy">
+                            </div>
+                            <div class="res-info">
+                                <span class="res-name" style="color: #facc15;">Lúa / Mì (Grain)</span>
+                                <span class="res-source">🌾 Cánh Đồng</span>
+                                <small class="res-lore">Lên Thành Phố & Thẻ PT</small>
+                            </div>
+                        </div>
+                        <div class="res-item" onclick="window.__inspectCard && window.__inspectCard('ORE')" title="Xem chi tiết thẻ Quặng">
+                            <div class="res-card-frame">
+                                <img src="assets/cards/card_ore.png" alt="Thẻ Quặng (Ore)" class="res-card-img" loading="lazy">
+                            </div>
+                            <div class="res-info">
+                                <span class="res-name" style="color: #94a3b8;">Đá / Quặng (Ore)</span>
+                                <span class="res-source">⛰️ Dãy Núi Quặng</span>
+                                <small class="res-lore">Đại đô thị & Hiệp Sĩ</small>
+                            </div>
+                        </div>
+                        <div class="res-item" onclick="window.__inspectCard && window.__inspectCard('GOLD')" title="Xem chi tiết thẻ Mỏ Vàng">
+                            <div class="res-card-frame">
+                                <img src="assets/cards/card_gold.png" alt="Thẻ Mỏ Vàng (Gold)" class="res-card-img" loading="lazy">
+                            </div>
+                            <div class="res-info">
+                                <span class="res-name" style="color: #fbbf24;">Mỏ Vàng (Gold)</span>
+                                <span class="res-source">✨ Sông Vàng</span>
+                                <small class="res-lore">Tự chọn 1 tài nguyên bất kỳ</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 style="color: var(--gold); margin: 20px 0 10px;">Bảng Giá Chi Phí Xây Dựng Chi Tiết</h4>
+                    <div class="rules-table-container">
+                        <table class="rules-table">
+                            <thead>
+                                <tr>
+                                    <th>Công Trình / Mục Mua</th>
+                                    <th>Tài Nguyên Cần Dùng</th>
+                                    <th>Công Dụng & Quyền Lợi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Con Đường (Road)</strong></td>
+                                    <td><span class="res-cost-tag">1 Gỗ + 1 Gạch</span></td>
+                                    <td>Đặt trên các cạnh đất liền. Nối dài lãnh thổ, cạnh tranh "Con Đường Dài Nhất" (2 VP).</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Thuyền Buồm (Ship)</strong></td>
+                                    <td><span class="res-cost-tag">1 Gỗ + 1 Cừu</span></td>
+                                    <td>Đặt trên các cạnh biển/bờ biển. Mở đường ra hải phận, khám phá các hòn đảo mới.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Khu Định Cư (Settlement)</strong></td>
+                                    <td><span class="res-cost-tag">1 Gỗ + 1 Gạch + 1 Lúa + 1 Cừu</span></td>
+                                    <td>Cho <strong>1 VP</strong>. Nhận 1 tài nguyên mỗi khi ô tiếp giáp trúng số. Phải tuân thủ Luật 2 Cạnh.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Thành Phố (City)</strong></td>
+                                    <td><span class="res-cost-tag">3 Đá + 2 Lúa</span></td>
+                                    <td>Nâng cấp 1 Định Cư có sẵn. Tăng lên <strong>2 VP</strong>. Nhận <strong>GẤP ĐÔI (2 tài nguyên)</strong> mỗi lần trúng số!</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>🃏 Thẻ Phát Triển (Dev Card)</strong></td>
+                                    <td><span class="res-cost-tag">1 Đá + 1 Cừu + 1 Lúa</span></td>
+                                    <td>Rút 1 lá bài may mắn (Hiệp sĩ, Tiến bộ hoặc Điểm ẩn 1 VP).</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Section 5: Seafarers Expansion -->
+                <div class="rules-section" id="sec-seafarers">
+                    <div class="sec-heading">
+                        <span class="sec-badge">PHẦN 5</span>
+                        <h3>BẢN MỞ RỘNG ĐẠI HẢI TRÌNH (SEAFARERS)</h3>
+                    </div>
+                    <p>Bản mở rộng Seafarers đưa người chơi vượt ra khỏi bờ biển đảo chính để khám phá đại dương và các hòn đảo kỳ thú.</p>
+
+                    <div class="step-card">
+                        <strong>1. Đóng Thuyền & Tuyến Hải Trình:</strong>
+                        <p>Thuyền buồm hoạt động như đường bộ nhưng di chuyển trên các cạnh biển (Water edges). Bạn có thể nối tiếp tuyến thuyền từ một khu định cư ven biển. Đường bộ và thuyền buồm kết nối thông suốt với nhau qua các khu định cư ven bờ.</p>
+                    </div>
+
+                    <div class="step-card" style="margin-top: 10px;">
+                        <strong>2. Di Chuyển Thuyền Mở (Moving an Open Ship):</strong>
+                        <p>Nếu chiếc thuyền ở đầu hải trình của bạn không bị khóa bởi định cư hoặc thuyền khác (gọi là <em>Thuyền Mở</em>), bạn được quyền <strong>nhấc chiếc thuyền đó lên và đặt sang một vị trí cạnh biển hợp lệ khác</strong> trong lượt của mình (miễn là bạn chưa đóng thêm thuyền mới trong lượt đó)!</p>
+                    </div>
+
+                    <div class="step-card" style="margin-top: 10px;">
+                        <strong>3. Khám Phá Đảo Mới & Điểm Catan Đặc Biệt:</strong>
+                        <p>Khi hải trình của bạn chạm đến một hòn đảo mới lạ xa bờ và bạn dựng Khu định cư đầu tiên trên hòn đảo đó, bạn sẽ được thưởng ngay <strong>+1 hoặc +2 Điểm Catan Đặc Biệt (VP)</strong>!</p>
+                    </div>
+                </div>
+
+                <!-- Section 6: Robber & Number 7 -->
+                <div class="rules-section" id="sec-robber">
+                    <div class="sec-heading">
+                        <span class="sec-badge">PHẦN 6</span>
+                        <h3>TÊN CƯỚP (ROBBER) & CƯỚP BIỂN (PIRATE) KHI GIEO SỐ 7</h3>
+                    </div>
+                    <p>Số 7 là con số có xác suất xuất hiện cao nhất trên 2 viên xúc xắc (6/36 = 16.7%). Khi số 7 xuất hiện, không có ô đất nào sản xuất tài nguyên, mà quy trình bão cướp sau sẽ diễn ra:</p>
+
+                    <div class="alert-box danger-box">
+                        <div style="font-weight: bold; font-size: 1.05rem; margin-bottom: 4px;">1. LUẬT NỘP PHẠT BỎ BÀI NẾU CẦM TRÊN 7 THẺ</div>
+                        <div>BẤT KỲ người chơi nào (kể cả người vừa gieo ra 7) đang cầm <strong>từ 8 thẻ trở lên</strong> trên tay đều lập tức bị phạt: <strong>Phải tự chọn và nộp bỏ đúng 1/2 số thẻ</strong> (làm tròn xuống).</div>
+                    </div>
+
+                    <div class="example-box" style="margin-top: 10px;">
+                        <span class="example-tag">VÍ DỤ PHẠT THẺ BÀI SỐ 7</span>
+                        <div>• Người chơi A có <strong>8 thẻ</strong> ➔ Phải bỏ đúng <strong>4 thẻ</strong> (còn 4 thẻ).</div>
+                        <div>• Người chơi B có <strong>9 thẻ</strong> ➔ Phải bỏ đúng <strong>4 thẻ</strong> (9 / 2 = 4.5 ➔ làm tròn xuống 4, còn lại 5 thẻ).</div>
+                        <div>• Người chơi C có <strong>7 thẻ</strong> hoặc ít hơn ➔ <strong>AN TOÀN</strong>, không bị mất thẻ nào!</div>
+                    </div>
+
+                    <div class="step-card" style="margin-top: 14px;">
+                        <strong>2. Di chuyển Tên Cướp hoặc Cướp Biển:</strong>
+                        <p>Người gieo số 7 bắt buộc phải di chuyển:</p>
+                        <ul>
+                            <li><strong>Tên Cướp (Robber):</strong> Đặt sang 1 ô đất liền khác. Ô đất bị Tên Cướp chiếm đóng sẽ <strong>BỊ PHONG TỎA</strong> hoàn toàn: Khi số của ô đất đó được gieo ra, không một ai nhận được tài nguyên từ ô đó!</li>
+                            <li><strong>Cướp Biển (Pirate):</strong> Đặt sang 1 ô biển. Cướp Biển ngăn chặn đối thủ đóng hoặc di chuyển thuyền tại ô biển đó.</li>
+                        </ul>
+                    </div>
+
+                    <div class="step-card" style="margin-top: 10px;">
+                        <strong>3. Cướp thẻ bài từ đối thủ:</strong>
+                        <p>Sau khi đặt Tên Cướp sang ô đất mới, bạn được quyền chọn 1 người chơi có định cư hoặc thành phố tiếp giáp ô đất đó và <strong>rút trộm ngẫu nhiên 1 thẻ tài nguyên</strong> trên tay họ vào túi đồ của mình!</p>
+                    </div>
+                </div>
+
+                <!-- Section 7: Trading & Ports -->
+                <div class="rules-section" id="sec-trade">
+                    <div class="sec-heading">
+                        <span class="sec-badge">PHẦN 7</span>
+                        <h3>GIAO DỊCH & HỆ THỐNG CẢNG BIỂN (PORTS)</h3>
+                    </div>
+                    <p>Giao dịch là chìa khóa để giải quyết vấn đề khan hiếm tài nguyên hoặc dư thừa nguyên liệu không dùng tới:</p>
+
+                    <div class="trade-types-grid">
+                        <div class="trade-card">
+                            <div class="trade-title">Giao Dịch Người Chơi</div>
+                            <div class="trade-badge">Tỷ lệ tự do</div>
+                            <p>Diễn ra trong lượt của bạn. Bạn có thể tự do thỏa thuận với các người chơi khác (VD: 1 Lúa đổi 1 Đá, 2 Gỗ đổi 1 Gạch). <em>Lưu ý: Không được trao tặng không tài nguyên (phải là trao đổi hai chiều).</em></p>
+                        </div>
+
+                        <div class="trade-card">
+                            <div class="trade-title">Giao Dịch Ngân Hàng</div>
+                            <div class="trade-badge">Tỷ lệ 4:1</div>
+                            <p>Bất kỳ lúc nào trong lượt, bạn có thể nộp <strong>4 thẻ cùng loại</strong> cho ngân hàng để đổi lấy <strong>1 thẻ tài nguyên bất kỳ</strong> bạn cần (VD: 4 Cừu ➔ 1 Gạch).</p>
+                        </div>
+
+                        <div class="trade-card">
+                            <div class="trade-title">Cảng Biển Thường (?)</div>
+                            <div class="trade-badge">Tỷ lệ 3:1</div>
+                            <p>Nếu bạn có định cư kề Cảng 3:1, bạn chỉ cần nộp <strong>3 thẻ cùng loại bất kỳ</strong> để lấy 1 thẻ tùy chọn (VD: 3 Gỗ ➔ 1 Đá). Tiết kiệm hơn rất nhiều so với ngân hàng!</p>
+                        </div>
+
+                        <div class="trade-card">
+                            <div class="trade-title">Cảng Chuyên Dụng</div>
+                            <div class="trade-badge">Tỷ lệ 2:1</div>
+                            <p>Cảng có biểu tượng cụ thể (Gỗ, Lúa, Đá, Cừu, Gạch). Chỉ cần <strong>2 thẻ đúng loại của cảng đó</strong> để đổi lấy 1 thẻ bất kỳ! (VD: Sở hữu Cảng Đá ➔ 2 Đá đổi được 1 Lúa).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 8: Development Cards -->
+                <div class="rules-section" id="sec-devcards">
+                    <div class="sec-heading">
+                        <span class="sec-badge">PHẦN 8</span>
+                        <h3>🃏 BỘ THẺ PHÁT TRIỂN (DEVELOPMENT CARDS)</h3>
+                    </div>
+                    <p>Mua bằng chi phí <strong>1 Đá + 1 Cừu + 1 Lúa</strong>. Các lá bài phát triển gồm 3 nhóm sức mạnh:</p>
+
+                    <div class="devcard-list">
+                        <div class="devcard-box">
+                            <div class="devcard-header">THẺ HIỆP SĨ (KNIGHT) - Chiếm đa số bộ bài</div>
+                            <p>Khi đánh thẻ này, bạn được lập tức di chuyển Tên Cướp/Cướp Biển và cướp 1 thẻ bài từ đối thủ tiếp giáp. Thẻ sau khi dùng sẽ được lật mở trước mặt bạn.</p>
+                            <div class="alert-box success-box" style="margin-top: 6px;">
+                                <strong>Đội Quân Mạnh Nhất (Largest Army - 2 VP):</strong> Người đầu tiên lật mở đủ <strong>3 thẻ Hiệp Sĩ</strong> sẽ nắm giữ danh hiệu này. Nếu ai đó có số Hiệp Sĩ nhiều hơn, danh hiệu sẽ chuyển sang người đó!
+                            </div>
+                        </div>
+
+                        <div class="devcard-box">
+                            <div class="devcard-header">THẺ TIẾN BỘ (PROGRESS CARDS)</div>
+                            <ul>
+                                <li><strong>Xây Đường (Road Building):</strong> Xây ngay lập tức <strong>2 đoạn đường bộ hoặc 2 thuyền buồm hoàn toàn miễn phí</strong>.</li>
+                                <li><strong>Bội Thu (Year of Plenty):</strong> Lấy ngay <strong>2 thẻ tài nguyên bất kỳ</strong> từ ngân hàng vào tay bạn.</li>
+                                <li><strong>Độc Quyền (Monopoly):</strong> Đọc tên 1 loại tài nguyên (VD: "Đá"). TẤT CẢ đối thủ trên bàn phải giao nộp toàn bộ tài nguyên loại đó họ đang có cho bạn!</li>
+                            </ul>
+                        </div>
+
+                        <div class="devcard-box">
+                            <div class="devcard-header">THẺ ĐIỂM CHIẾN THẮNG ẨN (VICTORY POINT)</div>
+                            <p>Mỗi thẻ tương ứng với <strong>1 VP vĩnh viễn</strong> (Thư viện, Đại học, Tòa thị chính...). Thẻ này được giữ úp bí mật, chỉ mở ra khi bạn tuyên bố chiến thắng!</p>
+                        </div>
+                    </div>
+
+                    <div class="alert-box danger-box" style="margin-top: 14px;">
+                        <strong>Quy tắc sử dụng thẻ phát triển:</strong>
+                        <div style="margin-top: 4px;">
+                            • Mỗi lượt bạn chỉ được đánh <strong>tối đa 1 Thẻ Phát Triển</strong>.<br>
+                            • Không được đánh thẻ vừa mua trong cùng một lượt (phải đợi sang lượt tiếp theo), ngoại trừ Thẻ Điểm Chiến Thắng Ẩn nếu nó giúp bạn đủ điểm thắng ngay lập tức!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 9: Pro Tips & Strategy -->
+                <div class="rules-section" id="sec-tips">
+                    <div class="sec-heading">
+                        <span class="sec-badge">PHẦN 9</span>
+                        <h3>MẸO & CHIẾN THUẬT ĐỈNH CAO TỪ CAO THỦ</h3>
+                    </div>
+
+                    <div class="tip-card">
+                        <div class="tip-num">1</div>
+                        <div class="tip-body">
+                            <strong>Đọc xác suất con số trên bàn cờ:</strong>
+                            <div>Các số <strong>6 và 8 màu đỏ</strong> có nhiều chấm nhất (5 chấm = xác suất cao nhất). Kế tiếp là <strong>5 và 9</strong> (4 chấm), <strong>4 và 10</strong> (3 chấm). Tránh đặt khu định cư ở nơi chỉ có số 2, 12, 3 vì sản lượng tài nguyên sẽ rất khan hiếm!</div>
+                        </div>
+                    </div>
+
+                    <div class="tip-card">
+                        <div class="tip-num">2</div>
+                        <div class="tip-body">
+                            <strong>Chiến lược Mở Rộng Ban Đầu (Early Expansion):</strong>
+                            <div>Đầu trận, cặp tài nguyên <strong>Gỗ + Gạch</strong> là quan trọng nhất để xây đường và chiếm các giao điểm vàng trước khi bị đối thủ chặn đường.</div>
+                        </div>
+                    </div>
+
+                    <div class="tip-card">
+                        <div class="tip-num">3</div>
+                        <div class="tip-body">
+                            <strong>Chiến lược Đô Thị Hóa Cuối Trận (Late Game Engine):</strong>
+                            <div>Về giữa và cuối trận, cặp <strong>Đá + Lúa</strong> quyết định thắng bại. Xây Thành phố giúp nhân đôi sản lượng và mang lại 2 VP quý giá. Đồng thời tích cực mua Thẻ Phát Triển để giấu điểm ẩn và giành Đội Quân Mạnh Nhất!</div>
+                        </div>
+                    </div>
+
+                    <div class="tip-card">
+                        <div class="tip-num">4</div>
+                        <div class="tip-body">
+                            <strong>Nghệ thuật Quản Lý Bài - Tránh bão số 7:</strong>
+                            <div>Trước khi bấm "Hết Lượt", luôn đếm số thẻ trên tay. Nếu đang cầm 7 thẻ trở lên, hãy cố gắng giao dịch hoặc xây dựng bất kỳ thứ gì có thể để hạ số lượng xuống dưới 8 thẻ, đề phòng đối thủ gieo ra 7 khiến bạn mất trắng một nửa số bài!</div>
+                        </div>
+                    </div>
+
+                    <div class="tip-card">
+                        <div class="tip-num">5</div>
+                        <div class="tip-body">
+                            <strong>Khai thác Cảng biển thông minh:</strong>
+                            <div>Nếu bạn chiếm được một ô đất có sản lượng tài nguyên áp đảo (ví dụ ô Cừu số 6 hoặc số 8), hãy cố gắng xây định cư tại <strong>Cảng Cừu 2:1</strong>. Khi đó cứ 2 con cừu sẽ biến thành bất kỳ tài nguyên nào bạn muốn, tạo thành bộ máy sản xuất vô địch!</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Card Receive Banner -->
+    <div id="card-receive-banner"></div>
+
+    <script type="module" src="js/game/main3d.js?v=bgm1"></script>
+    <script>
+    // ─── MOBILE GAME ENHANCEMENTS ─────────────────────────────────────────
+    (function initMobileGame() {
+        const isMobile = () => window.innerWidth <= 768;
+        
+        if (!isMobile()) return;
+
+        // Prevent context menu on long press (canvas)
+        const canvas = document.getElementById('game-canvas');
+        if (canvas) {
+            canvas.addEventListener('contextmenu', e => e.preventDefault());
+        }
+
+        // Safe area handling for modern phones with notch
+        document.documentElement.style.setProperty(
+            '--safe-top', 'env(safe-area-inset-top, 0px)'
+        );
+        document.documentElement.style.setProperty(
+            '--safe-bottom', 'env(safe-area-inset-bottom, 0px)'
+        );
+
+        // Make event log collapsible on mobile
+        const eventLog = document.getElementById('event-log');
+        if (eventLog) {
+            eventLog.addEventListener('click', () => {
+                eventLog.classList.toggle('expanded');
+            });
+            
+            // Add toggle indicator
+            const indicator = document.createElement('div');
+            indicator.style.cssText = 'text-align:center;font-size:0.6rem;color:rgba(255,255,255,0.5);cursor:pointer;';
+            indicator.textContent = '▼ Nhật ký';
+            eventLog.insertBefore(indicator, eventLog.firstChild);
+        }
+
+        // Add swipe-to-dismiss for tutorial HUD on mobile
+        const tutHud = document.getElementById('tutorial-hud');
+        if (tutHud) {
+            let startY = 0;
+            tutHud.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].clientY;
+            }, { passive: true });
+            tutHud.addEventListener('touchend', (e) => {
+                const dy = e.changedTouches[0].clientY - startY;
+                if (dy < -50) {
+                    // Swipe up - minimize
+                    document.getElementById('tut-btn-minimize')?.click();
+                }
+            }, { passive: true });
+        }
+
+        // Auto-scroll resources to show active ones
+        const resources = document.querySelector('.resources');
+        if (resources) {
+            // Add haptic-like visual feedback when tapping res cards
+            resources.querySelectorAll('.res-card').forEach(card => {
+                card.style.cursor = 'default';
+            });
+        }
+
+        // Vibration feedback for game actions (if supported)
+        const actionBtns = ['btn-road', 'btn-ship', 'btn-settlement', 'btn-city', 'btn-roll', 'btn-end-turn'];
+        actionBtns.forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn && navigator.vibrate) {
+                btn.addEventListener('click', () => {
+                    navigator.vibrate(id === 'btn-end-turn' ? 50 : 20);
+                });
+            }
+        });
+
+        // Responsive resize handler
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                // Re-render three.js canvas on orientation change
+                if (window.dispatchEvent) {
+                    window.dispatchEvent(new Event('game-resize'));
+                }
+            }, 200);
+        });
+
+        // Lock screen orientation hint for landscape on game page
+        const orientationMsg = document.createElement('div');
+        orientationMsg.id = 'orientation-msg';
+        orientationMsg.style.cssText = `
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(10, 25, 50, 0.95);
+            z-index: 99999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #FFEED9;
+            font-size: 1.1rem;
+            text-align: center;
+            padding: 20px;
+            gap: 16px;
+        `;
+        orientationMsg.innerHTML = `
+            <svg class="mono-icon" style="width:48px;height:48px;" viewBox="0 0 24 24"><path fill="currentColor" d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>
+            <div style="font-size:1.4rem; font-weight:900; color:var(--gold);">Xoay màn hình</div>
+            <div>Trải nghiệm tốt nhất khi chơi <strong>ngang màn hình</strong></div>
+            <button onclick="document.getElementById('orientation-msg').style.display='none'" 
+                style="margin-top:10px; padding:12px 24px; background:var(--gold); color:#123d68; 
+                border:none; font-weight:900; font-size:1rem; cursor:pointer; border-radius:4px;">
+                Chơi dọc màn hình
+            </button>
+        `;
+        document.body.appendChild(orientationMsg);
+
+        function checkOrientation() {
+            if (isMobile() && window.innerHeight > window.innerWidth) {
+                // Portrait on mobile - show subtle hint first time
+                const shown = sessionStorage.getItem('landscape-hint-shown');
+                if (!shown) {
+                    orientationMsg.style.display = 'flex';
+                    sessionStorage.setItem('landscape-hint-shown', '1');
+                    setTimeout(() => {
+                        orientationMsg.style.display = 'none';
+                    }, 3000);
+                }
+            } else {
+                orientationMsg.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('orientationchange', () => {
+            setTimeout(checkOrientation, 300);
+        });
+        // checkOrientation(); // Don't force show on load - only on change
+
+    })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1931 @@
+/* =====================================================================
+   MERCHANTS OF ELDORA - MOBILE RESPONSIVE STYLESHEET
+   Tối ưu hóa toàn diện cho điện thoại (< 768px)
+   ===================================================================== */
+
+/* ─── GLOBAL MOBILE RESETS ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  * {
+    -webkit-tap-highlight-color: transparent !important;
+    box-sizing: border-box;
+  }
+
+  html, body {
+    max-width: 100vw;
+    overflow-x: hidden !important;
+  }
+
+  canvas,
+  #game-canvas {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    outline: none !important;
+  }
+
+  body {
+    -webkit-text-size-adjust: 100%;
+    touch-action: manipulation;
+    /* Smooth momentum scroll on iOS */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  input, select, textarea {
+    font-size: 16px !important; /* Ngăn iOS zoom khi focus trên trường nhập liệu */
+    touch-action: manipulation;
+    min-height: 44px;
+  }
+
+  /* Optimized touch targets on mobile: WCAG 2.1 AA compliant (>= 44x44px) */
+  .btn, button, .tab {
+    min-height: 44px;
+    padding: 10px 14px;
+    box-sizing: border-box;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+}
+
+/* Lobby with bottom nav - add enough padding */
+@media (max-width: 768px) {
+  body.lobby-page {
+    overflow: hidden;
+    height: 100dvh;
+  }
+
+  body.lobby-page .lobby-container {
+    padding-bottom: 58px !important;
+    height: calc(100dvh - 52px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+}
+
+/* =====================================================================
+   TRANG ĐĂNG NHẬP (index.html)
+   ===================================================================== */
+@media (max-width: 768px) {
+  /* Login page body */
+  body:has(.auth-container) {
+    padding: 16px;
+    height: 100dvh;
+    overflow-y: auto;
+    align-items: flex-start;
+    padding-top: 24px;
+  }
+
+  .auth-container {
+    width: 100% !important;
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .auth-header {
+    margin-bottom: 16px;
+  }
+
+  .auth-logo-img {
+    max-height: 90px !important;
+    max-width: 200px !important;
+  }
+
+  .auth-header h1 {
+    font-size: 1.4rem !important;
+    letter-spacing: 0.5px;
+  }
+
+  .auth-header p {
+    font-size: 0.85rem !important;
+  }
+
+  .card {
+    padding: 20px 16px;
+  }
+
+  .tabs {
+    margin-bottom: 16px;
+  }
+
+  .tab {
+    padding: 12px 8px;
+    font-size: 0.95rem;
+  }
+
+  .form-group {
+    margin-bottom: 12px;
+  }
+
+  .btn-submit {
+    padding: 14px !important;
+    font-size: 1rem !important;
+    min-height: 50px;
+  }
+
+  .wave-bg {
+    height: 120px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-header h1 {
+    font-size: 1.2rem !important;
+  }
+}
+
+/* =====================================================================
+   TRANG LOBBY (lobby.html)
+   ===================================================================== */
+@media (max-width: 768px) {
+  /* Top bar mobile */
+  .top-bar {
+    height: 52px !important;
+    min-height: 52px !important;
+    max-height: 52px !important;
+    padding: 6px 12px !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-sizing: border-box !important;
+  }
+
+  .user-info {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .user-profile-bar {
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    padding: 2px 8px 2px 2px !important;
+    gap: 7px !important;
+    border-radius: 20px !important;
+    background: rgba(255, 255, 255, 0.16) !important;
+    border: 1px solid rgba(255, 238, 217, 0.4) !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+  }
+
+  .avatar-badge-wrap {
+    position: relative !important;
+    flex-shrink: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .user-avatar {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+    max-width: 34px !important;
+    max-height: 34px !important;
+    margin-right: 0 !important;
+    flex-shrink: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    border: 1.5px solid #FFEED9 !important;
+  }
+
+  .user-avatar .mono-icon,
+  .user-avatar svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .avatar-edit-icon {
+    width: 14px !important;
+    height: 14px !important;
+    bottom: -1px !important;
+    right: -1px !important;
+    border-radius: 50% !important;
+    border: 1px solid #ffffff !important;
+    background: #0284c7 !important;
+  }
+  .avatar-edit-icon svg {
+    width: 8px !important;
+    height: 8px !important;
+  }
+
+  .user-meta-info {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    line-height: 1.2 !important;
+    text-align: left !important;
+  }
+
+  .user-name-line {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    line-height: 1.2 !important;
+  }
+
+  .user-name {
+    font-size: 0.82rem !important;
+    font-weight: 800 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.2 !important;
+    color: #fff !important;
+    max-width: 110px !important;
+    flex-shrink: 1 !important;
+  }
+
+  .badge-edit-profile {
+    padding: 1px 4px !important;
+    font-size: 0.62rem !important;
+    border-radius: 6px !important;
+    line-height: 1 !important;
+    gap: 2px !important;
+    flex-shrink: 0 !important;
+  }
+  .badge-edit-profile .edit-text {
+    display: none !important;
+  }
+
+  .user-stats {
+    font-size: 0.65rem !important;
+    gap: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    line-height: 1.2 !important;
+    margin-top: 1px !important;
+  }
+
+  .user-stats #user-elo {
+    color: #FFEED9 !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  .user-stats #user-stats {
+    margin-left: 0 !important;
+    color: rgba(255, 238, 217, 0.85) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-size: 0.63rem !important;
+  }
+
+  /* Hide center brand on mobile */
+  .top-brand {
+    display: none !important;
+  }
+
+  /* Top bar right buttons */
+  .top-bar > div:last-child {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Tutorial & rules buttons are already in bottom nav bar; hide from top bar on mobile */
+  .top-bar .btn-tutorial-top,
+  .top-bar .btn-rules {
+    display: none !important;
+  }
+
+  #lobby-music-btn {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+    border: 1.5px solid rgba(255, 238, 217, 0.5) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #fff !important;
+    flex-shrink: 0 !important;
+    cursor: pointer !important;
+  }
+
+  #lobby-music-btn span {
+    display: none !important;
+  }
+
+  #lobby-music-btn .mono-icon {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .top-bar .btn.btn-ghost#logout-btn {
+    height: 44px !important;
+    min-height: 44px !important;
+    min-width: 44px !important;
+    padding: 0 12px !important;
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    border-radius: 6px !important;
+    border: 1.5px solid rgba(255, 238, 217, 0.5) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #fff !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    cursor: pointer !important;
+  }
+
+  /* Lobby container - stack vertically */
+  .lobby-container {
+    flex-direction: column !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Left panel (Friends) on mobile */
+  .left-panel {
+    flex: none !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+
+  /* Center panel (Rooms) */
+  .center-panel {
+    width: 100% !important;
+    min-width: 100% !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+
+  /* Hero banner - compact for mobile */
+  .lobby-hero-card {
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+    text-align: center;
+  }
+
+  .hero-image-wrap {
+    display: flex;
+    justify-content: center;
+  }
+
+  .hero-logo-banner {
+    height: 55px !important;
+    max-width: 110px !important;
+    object-fit: contain;
+  }
+
+  .hero-title {
+    font-size: 1.02rem !important;
+    letter-spacing: 0.5px;
+    margin: 3px 0 !important;
+  }
+
+  /* Hide hero-tagline on mobile as requested */
+  .hero-tagline {
+    display: none !important;
+  }
+
+  .hero-badge {
+    font-size: 0.62rem !important;
+    padding: 2px 6px !important;
+  }
+
+  /* Hide tags on mobile as requested */
+  .hero-quick-stats {
+    display: none !important;
+  }
+
+  /* Rooms section bar */
+  .rooms-section-bar {
+    flex-direction: column !important;
+    gap: 6px !important;
+    padding: 6px 10px !important;
+    align-items: stretch !important;
+  }
+
+  .rooms-section-title {
+    font-size: 0.8rem !important;
+    font-weight: 800 !important;
+  }
+
+  .rooms-section-title .mono-icon {
+    width: 14px !important;
+    height: 14px !important;
+    margin-right: 4px !important;
+  }
+
+  .room-actions {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+  }
+
+  .room-actions .btn {
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    padding: 8px 10px !important;
+    min-height: 44px !important;
+    height: 44px !important;
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    letter-spacing: 0.2px !important;
+    gap: 6px !important;
+  }
+
+  .room-actions .btn .mono-icon {
+    width: 16px !important;
+    height: 13px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Rooms list - single column on mobile */
+  .rooms-list {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .rooms-content-area {
+    padding: 8px 10px !important;
+  }
+
+  /* Room card compact sizing for mobile */
+  .room-card {
+    height: auto !important;
+    min-height: unset !important;
+    max-height: none !important;
+    padding: 10px 12px !important;
+    border-width: 1.5px !important;
+  }
+
+  .room-card-header {
+    height: 22px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .room-card .room-name {
+    font-size: 0.85rem !important;
+    line-height: 22px !important;
+  }
+
+  .room-code-badge {
+    font-size: 0.62rem !important;
+    height: 18px !important;
+    line-height: 16px !important;
+    padding: 0 4px !important;
+  }
+
+  .btn-delete-room {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 1.1rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+  }
+
+  .corner-ribbon-wrapper {
+    width: 58px !important;
+    height: 58px !important;
+  }
+
+  .corner-ribbon {
+    font-size: 0.52rem !important;
+    padding: 2px 0 !important;
+  }
+
+  .room-meta {
+    height: auto !important;
+    font-size: 0.72rem !important;
+    gap: 3px !important;
+    margin: 4px 0 8px 0 !important;
+  }
+
+  .room-meta-row {
+    height: auto !important;
+    min-height: 18px !important;
+    font-size: 0.72rem !important;
+    gap: 6px !important;
+  }
+
+  .room-meta-row .mono-icon {
+    width: 13px !important;
+    height: 13px !important;
+  }
+
+  .room-join-btn {
+    height: 44px !important;
+    min-height: 44px !important;
+    font-size: 0.85rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.3px !important;
+  }
+
+  /* Friends panel on mobile */
+  .panel-content {
+    padding: 12px !important;
+  }
+
+  .search-box {
+    margin-bottom: 12px !important;
+    display: flex !important;
+    gap: 6px !important;
+  }
+
+  .search-box input {
+    height: 44px !important;
+    min-height: 44px !important;
+    font-size: 0.88rem !important;
+    padding: 6px 12px !important;
+    flex: 1 !important;
+  }
+
+  .search-box #search-friend-btn {
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 16px !important;
+    font-size: 0.82rem !important;
+    font-weight: 800 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .left-panel .panel-header {
+    cursor: default;
+    user-select: none;
+    padding: 10px 14px !important;
+  }
+
+  .left-panel .panel-header::after {
+    display: none !important;
+  }
+
+  .left-panel.collapsed .panel-content {
+    display: block !important;
+  }
+
+  /* Modals on mobile */
+  .dialog {
+    width: 95vw !important;
+    min-width: unset !important;
+    padding: 18px 14px !important;
+    margin: 0 auto;
+  }
+
+  /* Rules dialog mobile - Fullscreen modern app design */
+  #rules-modal {
+    padding: 0 !important;
+    background: rgba(4, 15, 28, 0.88) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+  }
+
+  .dialog.rules-dialog,
+  .rules-dialog {
+    width: 100vw !important;
+    height: 100% !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    max-width: 100vw !important;
+    border-radius: 0 !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: linear-gradient(180deg, #0e2946 0%, #091c30 100%) !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .rules-header {
+    padding: 12px 14px !important;
+    background: linear-gradient(180deg, #1a4975 0%, #103254 100%) !important;
+    border-bottom: 1.5px solid rgba(255, 215, 0, 0.35) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+    z-index: 10 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  .rules-title-box {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+  }
+
+  .rules-title-box svg {
+    width: 26px !important;
+    height: 26px !important;
+    flex-shrink: 0 !important;
+    color: var(--gold) !important;
+    filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.4));
+  }
+
+  .rules-title {
+    font-size: 0.96rem !important;
+    font-weight: 800 !important;
+    color: var(--gold) !important;
+    line-height: 1.25 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    letter-spacing: 0.2px !important;
+    margin: 0 !important;
+  }
+
+  .rules-subtitle {
+    display: none !important;
+  }
+
+  .rules-close-btn {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 1rem !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 50% !important;
+    color: #fff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    cursor: pointer !important;
+  }
+
+  .rules-nav {
+    padding: 8px 10px !important;
+    gap: 6px !important;
+    background: #0b223a !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    box-shadow: inset 0 -2px 6px rgba(0,0,0,0.2) !important;
+    z-index: 9 !important;
+    display: flex !important;
+    flex-shrink: 0 !important;
+  }
+
+  .rules-nav::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .rules-nav-btn {
+    padding: 6px 12px !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    border-radius: 18px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    color: #cbd5e1 !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .rules-nav-btn.active {
+    background: linear-gradient(135deg, #ffd700 0%, #f59e0b 100%) !important;
+    color: #0b223a !important;
+    border-color: #ffd700 !important;
+    font-weight: 800 !important;
+    box-shadow: 0 2px 10px rgba(255, 215, 0, 0.45) !important;
+    transform: scale(1.02);
+  }
+
+  .rules-body {
+    position: relative !important;
+    padding: 12px 12px 36px 12px !important;
+    gap: 14px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    box-sizing: border-box !important;
+    flex: 1 !important;
+  }
+
+  .rules-section {
+    padding: 14px 12px !important;
+    border-radius: 10px !important;
+    background: rgba(18, 48, 80, 0.8) !important;
+    border: 1px solid rgba(255, 215, 0, 0.22) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
+    scroll-margin-top: 10px !important;
+  }
+
+  .sec-heading {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+    padding-bottom: 8px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    flex-wrap: wrap !important;
+  }
+
+  .sec-badge {
+    padding: 2px 7px !important;
+    font-size: 0.7rem !important;
+    font-weight: 800 !important;
+    border-radius: 4px !important;
+    background: rgba(255, 215, 0, 0.2) !important;
+    border: 1px solid rgba(255, 215, 0, 0.5) !important;
+    color: var(--gold) !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  .sec-heading h3 {
+    font-size: 0.96rem !important;
+    font-weight: 800 !important;
+    color: #fff !important;
+    line-height: 1.35 !important;
+    margin: 0 !important;
+  }
+
+  .rules-section p {
+    font-size: 0.88rem !important;
+    line-height: 1.6 !important;
+    color: #e2e8f0 !important;
+    margin: 6px 0 !important;
+  }
+
+  .rules-section ul {
+    margin: 6px 0 8px 16px !important;
+    padding: 0 !important;
+  }
+
+  .rules-section li {
+    font-size: 0.86rem !important;
+    line-height: 1.55 !important;
+    margin-bottom: 5px !important;
+    color: #cbd5e1 !important;
+  }
+
+  .highlight-box {
+    padding: 10px 12px !important;
+    margin: 10px 0 !important;
+    font-size: 0.88rem !important;
+    border-left-width: 3.5px !important;
+    border-radius: 0 6px 6px 0 !important;
+    background: rgba(255, 215, 0, 0.08) !important;
+    border-left-color: var(--gold) !important;
+    line-height: 1.55 !important;
+  }
+
+  .alert-box {
+    padding: 10px 12px !important;
+    margin: 10px 0 !important;
+    font-size: 0.86rem !important;
+    border-radius: 6px !important;
+    line-height: 1.5 !important;
+  }
+
+  .example-box {
+    padding: 10px 12px !important;
+    margin: 10px 0 !important;
+    font-size: 0.85rem !important;
+    border-radius: 6px !important;
+    line-height: 1.55 !important;
+  }
+
+  .step-card {
+    padding: 10px 12px !important;
+    font-size: 0.86rem !important;
+    border-radius: 6px !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Mobile Responsive Table to Cards - No horizontal scroll needed! */
+  .rules-table-container {
+    position: static !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    margin: 8px 0 14px !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+
+  .rules-table-container::before {
+    display: none !important;
+  }
+
+  .rules-table {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    border: none !important;
+  }
+
+  .rules-table thead {
+    display: none !important;
+  }
+
+  .rules-table tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .rules-table tr {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    row-gap: 6px !important;
+    column-gap: 8px !important;
+    background: linear-gradient(135deg, rgba(20, 42, 75, 0.72), rgba(12, 25, 48, 0.9)) !important;
+    border: 1.5px solid rgba(255, 215, 0, 0.25) !important;
+    border-radius: 10px !important;
+    padding: 10px 12px !important;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35) !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Title / Name (Top-left) */
+  .rules-table td:nth-child(1) {
+    display: block !important;
+    flex: 1 1 auto !important;
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    color: #ffd700 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Score or Cost Badge (Top-right) */
+  .rules-table td:nth-child(2) {
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    flex: 0 0 auto !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+  }
+
+  .rules-table td:nth-child(2) .vp-pill {
+    padding: 3px 10px !important;
+    font-size: 0.8rem !important;
+    font-weight: 800 !important;
+    border-radius: 12px !important;
+    white-space: nowrap !important;
+  }
+
+  .rules-table td:nth-child(2) .res-cost-tag {
+    padding: 3px 8px !important;
+    font-size: 0.75rem !important;
+    border-radius: 6px !important;
+    background: rgba(255, 215, 0, 0.12) !important;
+    border: 1px solid rgba(255, 215, 0, 0.45) !important;
+    color: #ffd700 !important;
+    font-weight: 700 !important;
+    text-align: right !important;
+    line-height: 1.3 !important;
+    white-space: normal !important;
+  }
+
+  /* Description & Effect (Bottom full-width) */
+  .rules-table td:nth-child(3) {
+    display: block !important;
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    padding: 6px 0 0 0 !important;
+    border: none !important;
+    border-top: 1px dashed rgba(255, 215, 0, 0.2) !important;
+    font-size: 0.79rem !important;
+    color: #e2e8f0 !important;
+    line-height: 1.42 !important;
+    background: transparent !important;
+  }
+
+  .phase-card {
+    padding: 10px 12px !important;
+    gap: 10px !important;
+    border-radius: 8px !important;
+  }
+
+  .phase-num {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 1rem !important;
+  }
+
+  .phase-title {
+    font-size: 0.92rem !important;
+  }
+
+  .resource-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    margin: 10px 0 16px !important;
+  }
+
+  .res-item {
+    padding: 10px 6px !important;
+    gap: 4px !important;
+    border-radius: 10px !important;
+    font-size: 0.82rem !important;
+  }
+
+  .res-card-frame {
+    width: 66px !important;
+    height: 96px !important;
+    border-radius: 6px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .res-name {
+    font-size: 0.84rem !important;
+  }
+
+  .res-source {
+    font-size: 0.72rem !important;
+  }
+
+  .res-lore {
+    font-size: 0.68rem !important;
+  }
+
+  .trade-types-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .trade-card {
+    padding: 10px 12px !important;
+    border-radius: 6px !important;
+  }
+
+  .devcard-box {
+    padding: 10px 12px !important;
+    border-radius: 6px !important;
+  }
+
+  .tip-card {
+    padding: 10px 12px !important;
+    gap: 10px !important;
+    border-radius: 6px !important;
+  }
+
+  .tip-num {
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+/* =====================================================================
+   TRANG GAME (game.html)
+   ===================================================================== */
+@media (max-width: 768px) {
+  /* Top bar game */
+  .top-bar-game {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    padding: 2px 6px !important;
+    flex-wrap: nowrap !important;
+    overflow: visible !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+    gap: 4px !important;
+    position: relative !important;
+    z-index: 900 !important;
+  }
+
+  .top-bar-game-left,
+  .top-bar-game > div:first-child {
+    gap: 4px !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  /* Compact or hide logo on mobile so 4 players have 100% of top bar space */
+  .top-bar-game img,
+  .top-bar-game-logo {
+    height: 22px !important;
+    flex-shrink: 0 !important;
+  }
+  @media (max-width: 480px) {
+    .top-bar-logo-wrap,
+    .top-bar-game img.top-bar-game-logo {
+      display: none !important;
+    }
+  }
+
+  .top-bar-game span[style*="ELDORA"] {
+    display: none !important;
+  }
+
+  /* Players container - 4 Compact Pods */
+  #players-container {
+    gap: 4px !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    max-width: 100% !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    align-items: center !important;
+    justify-content: flex-start !important;
+  }
+
+  #players-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .player-pod {
+    padding: 2px 6px 2px 2px !important;
+    gap: 5px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    border-radius: 18px !important;
+    flex-shrink: 0 !important;
+    background: rgba(15, 23, 42, 0.6) !important;
+    border-width: 1.5px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+
+  .player-pod-avatar-wrap {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  .player-pod-avatar {
+    width: 28px !important;
+    height: 28px !important;
+    border-width: 1.5px !important;
+  }
+  .player-pod-vp {
+    font-size: 0.58rem !important;
+    padding: 0 3px !important;
+    bottom: -2px !important;
+    right: -3px !important;
+    border-width: 1px !important;
+  }
+
+  .player-pod-name {
+    font-size: 0.72rem !important;
+    max-width: 50px !important;
+    line-height: 1.1 !important;
+  }
+  .pod-me-tag {
+    display: none !important;
+  }
+
+  .player-pod-stats {
+    gap: 3px !important;
+    margin-top: 1px !important;
+  }
+  .pod-res-pill,
+  .pod-dev-pill {
+    font-size: 0.62rem !important;
+  }
+  .pod-res-pill svg,
+  .pod-dev-pill svg {
+    width: 9px !important;
+    height: 9px !important;
+  }
+  .pod-badge-road,
+  .pod-badge-army {
+    width: 12px !important;
+    height: 12px !important;
+  }
+  .pod-badge-road svg,
+  .pod-badge-army svg {
+    width: 8px !important;
+    height: 8px !important;
+  }
+
+  /* Legacy player-score fallback */
+  .player-score {
+    font-size: 0.65rem !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  /* Top bar game menu button & dropdown */
+  .top-bar-game > div:last-child {
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .game-menu-container {
+    flex-shrink: 0 !important;
+    position: relative !important;
+    overflow: visible !important;
+    z-index: 950 !important;
+  }
+
+  #game-menu-btn {
+    height: 44px !important;
+    min-height: 44px !important;
+    min-width: 44px !important;
+    padding: 0 12px !important;
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    border-radius: 6px !important;
+    white-space: nowrap !important;
+    border-color: var(--gold) !important;
+    color: var(--gold) !important;
+    cursor: pointer !important;
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: rgba(255, 215, 0, 0.2) !important;
+  }
+
+  #game-menu-btn .mono-icon {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  /* Game menu dropdown on mobile */
+  .game-menu-dropdown {
+    min-width: 155px !important;
+    right: 0 !important;
+    top: calc(100% + 4px) !important;
+    padding: 4px 0 !important;
+    position: absolute !important;
+    z-index: 99999 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    pointer-events: auto !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85), 0 0 15px rgba(255, 215, 0, 0.3) !important;
+  }
+
+  .game-menu-dropdown.hidden {
+    display: none !important;
+  }
+
+  .game-menu-item {
+    font-size: 0.8rem !important;
+    padding: 8px 12px !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: rgba(255, 215, 0, 0.2) !important;
+  }
+
+  .game-menu-item .mono-icon {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  /* Settings Modal on mobile */
+  .settings-dialog-box {
+    width: 95vw !important;
+    max-width: 440px !important;
+    padding: 14px 12px !important;
+  }
+
+  .settings-dialog-box #game-music-btn {
+    width: auto !important;
+    min-width: unset !important;
+    max-width: unset !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 6px 14px !important;
+    font-size: 0.82rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  .settings-dialog-box #game-music-btn span {
+    display: inline !important;
+  }
+
+  /* Phase indicator - compact & safely ABOVE the bottom HUD, never overlapping cards */
+  .phase-indicator {
+    top: auto !important;
+    bottom: calc(138px + env(safe-area-inset-bottom, 0px)) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    padding: 2px 8px !important;
+    border: 1.5px solid #FFEED9 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45) !important;
+    width: max-content !important;
+    max-width: 80vw !important;
+    text-align: center !important;
+    z-index: 20 !important;
+    pointer-events: none !important;
+    border-radius: 4px !important;
+    background: rgba(25, 95, 155, 0.96) !important;
+  }
+
+  #phase-label {
+    font-size: 0.65rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.2px !important;
+    line-height: 1.15 !important;
+    color: #FFEED9 !important;
+  }
+
+  #hint-text {
+    font-size: 0.56rem !important;
+    margin-top: 1px !important;
+    line-height: 1.15 !important;
+    color: #E0F4FF !important;
+  }
+
+  /* Event log - smaller & left positioned */
+  .event-log {
+    left: 6px !important;
+    bottom: auto !important;
+    top: 48px !important;
+    width: 160px !important;
+    height: 75px !important;
+    font-size: 0.62rem !important;
+    padding: 3px 5px !important;
+    opacity: 0.88;
+    z-index: 15 !important;
+  }
+
+  /* Dice area - positioned safely above phase indicator */
+  .dice-area {
+    bottom: calc(180px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 8px !important;
+    gap: 3px !important;
+    z-index: 25 !important;
+  }
+
+  .dice-display {
+    font-size: 0.85rem !important;
+    padding: 4px 10px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    border-radius: 6px !important;
+  }
+
+  .dice-display .mono-icon {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  #btn-roll {
+    font-size: 0.85rem !important;
+    padding: 6px 14px !important;
+    min-height: 44px !important;
+    height: 44px !important;
+    gap: 6px !important;
+    border-radius: 6px !important;
+  }
+
+  #btn-roll .mono-icon {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  /* Bottom bar - stacked & compact on mobile */
+  .bottom-bar {
+    flex-direction: column !important;
+    padding: 4px 6px !important;
+    padding-bottom: max(4px, env(safe-area-inset-bottom, 0px)) !important;
+    gap: 3px !important;
+    background: linear-gradient(to top, rgba(15, 60, 105, 0.98) 0%, rgba(15, 60, 105, 0.9) 100%) !important;
+    border-top: 1.5px solid rgba(255, 238, 217, 0.35) !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Resources row - stretch 100% across the full container width */
+  .resources {
+    display: flex !important;
+    flex-direction: row !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    gap: 3px !important;
+    overflow-x: hidden !important;
+    padding-bottom: 0 !important;
+    align-items: stretch !important;
+    justify-content: space-between !important;
+  }
+
+  .resources::-webkit-scrollbar {
+    display: none;
+  }
+
+  .res-card {
+    flex: 1 1 0px !important;
+    min-width: 0 !important;
+    width: 0 !important;
+    max-width: none !important;
+    padding: 2px 2px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 0px !important;
+    flex-shrink: 1 !important;
+    border-width: 1.5px !important;
+    box-sizing: border-box !important;
+  }
+
+  .res-card:hover {
+    transform: none !important;
+  }
+
+  .res-card:active {
+    transform: scale(0.96) !important;
+  }
+
+  .res-card-name {
+    font-size: 0.52rem !important;
+    gap: 2px !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+  }
+
+  .res-card-name .mono-icon {
+    width: 0.75em !important;
+    height: 0.75em !important;
+  }
+
+  .res-mini-thumb {
+    width: 10px !important;
+    height: 14px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .res-val {
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+  }
+
+  /* Hide 'Chạm xem' hint on mobile to save vertical space */
+  .res-card-hint {
+    display: none !important;
+  }
+
+  /* Actions - compact on mobile */
+  .actions {
+    width: 100%;
+    gap: 2px !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .actions-row {
+    gap: 4px !important;
+    flex-wrap: nowrap !important;
+    display: flex !important;
+  }
+
+  .actions-row .btn {
+    flex: 1;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    padding: 6px 3px !important;
+    min-height: 44px !important;
+    height: 44px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    letter-spacing: 0 !important;
+    border-radius: 6px !important;
+  }
+
+  .actions-row .btn .mono-icon {
+    width: 14px !important;
+    height: 14px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Ẩn hoàn toàn icon của các nút xây dựng trên điện thoại theo yêu cầu */
+  #btn-road svg,
+  #btn-road .mono-icon,
+  #btn-ship svg,
+  #btn-ship .mono-icon,
+  #btn-settlement svg,
+  #btn-settlement .mono-icon,
+  #btn-city svg,
+  #btn-city .mono-icon {
+    display: none !important;
+  }
+
+  /* Build buttons (row 2: Xây đường, Đóng tàu, Xây định cư, Lên thành phố) - touch target >= 44px */
+  .actions-row:nth-child(2) .btn {
+    font-size: 0.72rem !important;
+    padding: 6px 2px !important;
+    min-height: 44px !important;
+    height: 44px !important;
+    white-space: nowrap !important;
+    letter-spacing: 0 !important;
+    border-radius: 6px !important;
+  }
+
+  #btn-end-turn {
+    width: 100% !important;
+    margin-top: 3px !important;
+    padding: 8px 12px !important;
+    font-size: 0.85rem !important;
+    font-weight: 800 !important;
+    min-height: 44px !important;
+    height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    border-radius: 6px !important;
+    letter-spacing: 0.2px !important;
+  }
+
+  #btn-end-turn .mono-icon {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  /* Tutorial HUD - full width on mobile */
+  .tutorial-hud {
+    top: 55px !important;
+    right: 8px !important;
+    left: 8px !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+
+  .tutorial-card-body {
+    max-height: 180px !important;
+    font-size: 0.85rem !important;
+  }
+
+  .tutorial-step-title {
+    font-size: 0.95rem !important;
+  }
+
+  /* Floating Re-open Tutorial Button: under menu button at top right */
+  .tut-reopen-btn {
+    top: 48px !important;
+    bottom: auto !important;
+    right: 8px !important;
+    left: auto !important;
+    font-size: 0.68rem !important;
+    padding: 3px 8px !important;
+    height: 26px !important;
+    min-height: 26px !important;
+    border-radius: 4px !important;
+    z-index: 100 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  /* Dialogs for game page */
+  .dialog-box {
+    width: 95vw !important;
+    max-width: none !important;
+    padding: 16px 14px !important;
+    max-height: 85dvh;
+    overflow-y: auto;
+  }
+
+  /* Discard controls */
+  #discard-controls {
+    gap: 6px !important;
+  }
+
+  /* Dev cards list */
+  #dev-cards-list {
+    max-height: 220px !important;
+  }
+
+  /* Trade selects */
+  #trade-give,
+  #trade-get {
+    padding: 8px !important;
+    font-size: 0.95rem !important;
+  }
+
+  /* Player info modal */
+  #player-info-modal .dialog-box {
+    max-width: 95vw !important;
+  }
+
+  /* Waiting modal */
+  #waiting-modal .dialog-box {
+    padding: 16px !important;
+  }
+
+  #waiting-room-code {
+    font-size: 1.2rem !important;
+    letter-spacing: 1.5px !important;
+  }
+}
+
+/* Extra small devices (< 480px) */
+@media (max-width: 480px) {
+  /* Make event log toggleable */
+  .event-log {
+    width: 140px !important;
+    height: 70px !important;
+    font-size: 0.6rem !important;
+  }
+
+  .player-score {
+    font-size: 0.58rem !important;
+    padding: 2px 4px !important;
+    height: 20px !important;
+  }
+
+  /* Action buttons - optimized touch targets (>= 44px) */
+  .actions-row .btn {
+    font-size: 0.68rem !important;
+    padding: 6px 2px !important;
+    min-height: 44px !important;
+    height: 44px !important;
+  }
+
+  .actions-row:nth-child(2) .btn {
+    font-size: 0.68rem !important;
+    padding: 6px 2px !important;
+    min-height: 44px !important;
+    height: 44px !important;
+  }
+
+  #btn-end-turn {
+    font-size: 0.8rem !important;
+    min-height: 44px !important;
+    height: 44px !important;
+    padding: 8px 10px !important;
+  }
+
+  #btn-roll {
+    font-size: 0.8rem !important;
+    padding: 6px 12px !important;
+    min-height: 44px !important;
+    height: 44px !important;
+  }
+
+  .dice-display {
+    font-size: 0.8rem !important;
+    padding: 3px 8px !important;
+    min-height: 38px !important;
+    height: 38px !important;
+  }
+}
+
+/* =====================================================================
+   LANDSCAPE MOBILE (điện thoại nằm ngang)
+   ===================================================================== */
+@media (max-width: 900px) and (orientation: landscape) {
+  html, body {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  #hud {
+    max-width: 100vw !important;
+    width: 100vw !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Game page landscape - optimize for horizontal play */
+  .event-log {
+    top: 52px !important;
+    bottom: auto !important;
+    left: 8px !important;
+    width: 180px !important;
+    height: 80px !important;
+    font-size: 0.68rem !important;
+  }
+
+  .dice-area {
+    bottom: 130px !important;
+    right: 8px !important;
+    flex-direction: row !important;
+    align-items: center !important;
+  }
+
+  .bottom-bar {
+    flex-direction: row !important;
+    padding: 4px 8px !important;
+    align-items: center !important;
+    gap: 8px !important;
+    max-width: 100vw !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    justify-content: space-between !important;
+  }
+
+  .resources {
+    flex-direction: row !important;
+    gap: 3px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .res-card {
+    min-width: 38px !important;
+    padding: 3px 5px !important;
+  }
+
+  .res-card .res-mini-thumb {
+    width: 14px !important;
+    height: 20px !important;
+  }
+
+  .actions {
+    gap: 3px !important;
+    flex-shrink: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .actions-row {
+    gap: 3px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .actions-row .btn {
+    padding: 4px 6px !important;
+    font-size: 0.68rem !important;
+    min-height: 44px !important;
+    height: 44px !important;
+    flex-direction: row !important;
+    gap: 2px !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+  }
+
+  #btn-end-turn {
+    margin-top: 0 !important;
+    padding: 4px 8px !important;
+    font-size: 0.75rem !important;
+    min-height: 44px !important;
+    height: 44px !important;
+  }
+
+  .btn-delete-room {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 1.1rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+  }
+
+  .phase-indicator {
+    bottom: 130px !important;
+    font-size: 0.8rem !important;
+    padding: 4px 12px !important;
+  }
+
+  .tutorial-hud {
+    top: 52px !important;
+    right: 8px !important;
+    left: auto !important;
+    width: 300px !important;
+    max-width: 45vw !important;
+  }
+
+  .tutorial-card-body {
+    max-height: 100px !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* Lobby landscape */
+  .lobby-container {
+    flex-direction: row !important;
+  }
+
+  .left-panel {
+    flex: 0 0 240px !important;
+    min-width: 220px !important;
+    max-width: 260px !important;
+    order: 1 !important;
+  }
+
+  .center-panel {
+    order: 2 !important;
+    width: auto !important;
+    min-width: 0 !important;
+  }
+}
+
+/* =====================================================================
+   UTILITY CLASSES CHO MOBILE
+   ===================================================================== */
+@media (max-width: 768px) {
+  .mobile-hidden {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: block !important;
+  }
+
+  /* Smooth scroll for all panels */
+  .panel-content,
+  .rooms-content-area,
+  .rules-body,
+  .event-log,
+  #dev-cards-list {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Better focus styles for mobile */
+  input:focus,
+  select:focus,
+  button:focus {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+}
+
+/* Ensure mobile-only elements are hidden on desktop */
+.mobile-only,
+.mobile-tab-bar {
+  display: none !important;
+}
+
+/* =====================================================================
+   MOBILE BOTTOM NAVIGATION (Lobby)
+   ===================================================================== */
+@media (max-width: 768px) {
+  /* Mobile bottom tab bar for lobby */
+  .mobile-tab-bar {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(180deg, #153c66 0%, #0d2847 100%);
+    border-top: 1.5px solid rgba(255, 238, 217, 0.35);
+    z-index: 200;
+    height: 52px !important;
+    min-height: 52px !important;
+    max-height: 52px !important;
+    box-shadow: 0 -3px 14px rgba(0, 0, 0, 0.4);
+    padding: 0 2px !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+    align-items: stretch !important;
+    box-sizing: border-box !important;
+  }
+
+  .mobile-tab-btn {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 2px !important;
+    border: none !important;
+    background: transparent !important;
+    color: rgba(255, 238, 217, 0.65) !important;
+    font-size: 0.62rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.2px !important;
+    cursor: pointer !important;
+    transition: color 0.15s, background 0.15s !important;
+    padding: 3px 2px !important;
+    min-height: unset !important;
+    height: 100% !important;
+    border-radius: 4px !important;
+    text-transform: uppercase !important;
+    -webkit-tap-highlight-color: rgba(255, 210, 59, 0.15) !important;
+    touch-action: manipulation !important;
+  }
+
+  .mobile-tab-btn .mono-icon {
+    width: 18px !important;
+    height: 18px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .mobile-tab-btn span {
+    font-size: 0.62rem !important;
+    font-weight: 700 !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+    display: block !important;
+    text-align: center !important;
+  }
+
+  .mobile-tab-btn.active {
+    color: var(--gold, #ffd23b) !important;
+    background: rgba(255, 210, 59, 0.12) !important;
+  }
+
+  .mobile-tab-btn.active .mono-icon {
+    filter: drop-shadow(0 0 4px rgba(255, 210, 59, 0.6)) !important;
+  }
+
+  #tab-create .mono-icon {
+    width: 20px !important;
+    height: 20px !important;
+    color: var(--gold, #ffd23b) !important;
+  }
+
+  #tab-create span {
+    color: var(--gold, #ffd23b) !important;
+    font-weight: 800 !important;
+  }
+
+  /* Add padding to lobby container for bottom tab bar */
+  body:has(.mobile-tab-bar) .lobby-container {
+    padding-bottom: 58px !important;
+  }
+
+  /* Panel visibility control */
+  .lobby-panel-section {
+    display: none;
+  }
+
+  .lobby-panel-section.panel-active {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .center-panel {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Override: always show center panel content area fully */
+  .center-panel .hero-top-section,
+  .center-panel .rooms-section-bar,
+  .center-panel .rooms-content-area {
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  .center-panel .hero-top-section {
+    display: block !important;
+  }
+}

@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Sảnh Chờ - Merchants of Eldora (Catan Seafarers 3D)</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/lobby.css">
+    <link rel="stylesheet" href="css/mobile.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "/vendor/three/build/three.module.js",
+            "three/addons/": "/vendor/three/examples/jsm/",
+            "three/examples/jsm/": "/vendor/three/examples/jsm/",
+            "socket.io-client": "/vendor/socket.io/socket.io.esm.min.js"
+        }
+    }
+    </script>
+    <style>
+        /* ─── BRIGHT OCEANIC PROFILE & AVATAR MODAL (THEME SẢNH TƯƠI SÁNG) ─── */
+        .avatar-modal-box {
+            max-width: 950px !important;
+            width: 95% !important;
+            max-height: 92vh !important;
+            overflow-y: auto !important;
+            padding: 20px !important;
+            background: linear-gradient(165deg, #ffffff 0%, #f0f9ff 60%, #e0f2fe 100%) !important;
+            border: 2.5px solid #38bdf8 !important;
+            border-radius: 16px !important;
+            box-shadow: 0 16px 50px rgba(56, 189, 248, 0.35) !important;
+            color: #0c3258 !important;
+        }
+
+        .avatar-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: -20px -20px 16px -20px !important;
+            background: linear-gradient(90deg, #39A7FF 0%, #2492eb 60%, #0284c7 100%) !important;
+            padding: 14px 20px !important;
+            border-radius: 13px 13px 0 0 !important;
+            border-bottom: 2px solid #FFEED9 !important;
+            box-shadow: 0 3px 10px rgba(57, 167, 255, 0.25) !important;
+        }
+
+        .avatar-modal-title {
+            margin: 0 !important;
+            color: #ffffff !important;
+            font-size: 1.25rem !important;
+            font-weight: 800 !important;
+            text-shadow: 0 1px 3px rgba(12, 50, 88, 0.35) !important;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #btn-close-avatar-modal {
+            width: 36px !important;
+            height: 36px !important;
+            padding: 0 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 1.2rem !important;
+            border-radius: 50% !important;
+            background: rgba(255, 255, 255, 0.22) !important;
+            color: #ffffff !important;
+            border: 1.5px solid rgba(255, 255, 255, 0.45) !important;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        #btn-close-avatar-modal:hover {
+            background: rgba(255, 255, 255, 0.35) !important;
+            transform: scale(1.05);
+        }
+
+        /* Profile Tabs Navigation */
+        .profile-nav-tabs {
+            display: flex;
+            gap: 8px;
+            background: #e0f2fe;
+            border: 1.5px solid #bae6fd;
+            border-radius: 12px;
+            padding: 5px;
+            margin-bottom: 16px;
+        }
+
+        .profile-tab-btn {
+            flex: 1;
+            padding: 10px 14px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: transparent;
+            color: #0369a1;
+            min-height: 44px;
+        }
+
+        .profile-tab-btn.active {
+            background: linear-gradient(135deg, #39A7FF, #0284c7) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35) !important;
+        }
+
+        /* Tab Content Panes */
+        .profile-tab-pane {
+            display: none;
+        }
+        .profile-tab-pane.active {
+            display: block;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Layout in Avatar Tab */
+        .avatar-modal-layout {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 20px;
+            align-items: start;
+        }
+        @media (max-width: 840px) {
+            .avatar-modal-layout {
+                grid-template-columns: 1fr !important;
+                gap: 14px !important;
+            }
+        }
+
+        .avatar-step-title {
+            font-weight: 800;
+            color: #0284c7;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .avatar-step-desc {
+            color: #475569;
+            font-size: 0.84rem;
+            margin: 0 0 10px 0;
+            line-height: 1.35;
+        }
+
+        .avatar-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .avatar-card {
+            border: 2px solid #bae6fd;
+            background: #ffffff;
+            padding: 10px 8px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        .avatar-card:hover {
+            border-color: #38bdf8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px rgba(56, 189, 248, 0.2);
+        }
+        .avatar-card.selected {
+            border: 2.5px solid #0284c7 !important;
+            background: #e0f2fe !important;
+            box-shadow: 0 4px 16px rgba(2, 132, 199, 0.25) !important;
+        }
+
+        .avatar-card-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            background: #0284c7;
+            color: #ffffff;
+            border-radius: 4px;
+            font-weight: 800;
+        }
+
+        .avatar-round-portrait {
+            width: 58px;
+            height: 58px;
+            border-radius: 50% !important;
+            object-fit: cover;
+            object-position: center 12%;
+            border: 2.5px solid #f59e0b;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            margin: 0 auto 6px auto;
+            display: block;
+            background: #f0f9ff;
+            transition: transform 0.2s ease;
+        }
+
+        .avatar-card-name {
+            font-weight: 800;
+            color: #0c3258;
+            font-size: 0.9rem;
+            margin-top: 2px;
+        }
+        .avatar-card.selected .avatar-card-name {
+            color: #0284c7;
+        }
+
+        .avatar-card-desc {
+            font-size: 0.74rem;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* Animation Options */
+        .anim-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .btn-anim-option {
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            color: #0c3258;
+            padding: 10px 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border-radius: 8px;
+            text-align: left;
+            transition: all 0.18s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 48px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+        }
+        .btn-anim-option:hover {
+            border-color: #38bdf8;
+            background: #f8fafc;
+        }
+        .btn-anim-option.selected {
+            border: 2px solid #0284c7 !important;
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd) !important;
+            color: #0369a1 !important;
+            font-weight: bold;
+            box-shadow: 0 2px 10px rgba(2, 132, 199, 0.22) !important;
+        }
+
+        .anim-opt-name {
+            font-weight: 800;
+            font-size: 0.88rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #0c3258;
+        }
+        .btn-anim-option.selected .anim-opt-name {
+            color: #0284c7;
+        }
+
+        .anim-opt-desc {
+            font-size: 0.73rem;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* 3D Preview Stage in Light Oceanic Theme */
+        .avatar-preview-title {
+            font-weight: 800;
+            color: #0284c7;
+            font-size: 1rem;
+        }
+        .avatar-preview-hint {
+            font-size: 0.78rem;
+            color: #0284c7;
+            font-weight: 600;
+        }
+
+        .avatar-preview-stage {
+            width: 100%;
+            height: 380px;
+            background: radial-gradient(circle at 50% 30%, #ffffff 0%, #e0f2fe 45%, #bae6fd 80%, #7dd3fc 100%) !important;
+            border-radius: 12px;
+            border: 2px solid #38bdf8 !important;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(56, 189, 248, 0.25) !important;
+        }
+
+        .avatar-preview-footer {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 1.5px solid #7dd3fc !important;
+            border-radius: 8px;
+            padding: 9px 14px;
+            font-size: 0.84rem;
+            color: #0c3258 !important;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .avatar-save-btn {
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%) !important;
+            color: #451a03 !important;
+            border: none !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4) !important;
+            font-weight: 800 !important;
+            font-size: 1rem !important;
+            min-height: 48px !important;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .avatar-save-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(245, 158, 11, 0.5) !important;
+        }
+
+        /* ─── ACCOUNT SETTINGS TAB (ĐỔI TÊN & ĐỔI MẬT KHẨU) ─── */
+        .account-settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 720px) {
+            .account-settings-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        .account-card {
+            background: #ffffff;
+            border: 1.5px solid #bae6fd;
+            border-radius: 12px;
+            padding: 16px 18px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .account-card-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #0284c7;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1.5px solid #e0f2fe;
+            padding-bottom: 8px;
+            margin: 0;
+        }
+
+        .form-group-profile {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-label-profile {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .form-input-profile {
+            width: 100% !important;
+            padding: 10px 12px !important;
+            font-size: 16px !important; /* Ngăn chặn Safari auto-zoom */
+            border: 1.5px solid #cbd5e1 !important;
+            border-radius: 8px !important;
+            background: #f8fafc !important;
+            color: #0f172a !important;
+            box-sizing: border-box !important;
+            transition: border-color 0.2s;
+        }
+        .form-input-profile:focus {
+            border-color: #0284c7 !important;
+            background: #ffffff !important;
+        }
+
+        .btn-profile-submit {
+            background: linear-gradient(135deg, #39A7FF, #0284c7) !important;
+            color: #ffffff !important;
+            border: none !important;
+            border-radius: 8px !important;
+            font-weight: 700 !important;
+            font-size: 0.95rem !important;
+            padding: 11px 16px !important;
+            min-height: 44px !important;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(2, 132, 199, 0.28) !important;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-profile-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 14px rgba(2, 132, 199, 0.38) !important;
+        }
+
+        .profile-stats-card {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            border: 1.5px solid #7dd3fc;
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .stat-badge-item {
+            text-align: center;
+        }
+        .stat-badge-val {
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: #0369a1;
+        }
+        .stat-badge-lbl {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+        }
+
+        .profile-msg-box {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: none;
+        }
+        .profile-msg-box.success {
+            display: block;
+            background: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+        .profile-msg-box.error {
+            display: block;
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+
+        /* ─── TOP BAR USER PROFILE BAR & AVATAR EDIT TRIGGER ─── */
+        .user-profile-bar {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1.5px solid rgba(255, 238, 217, 0.5);
+            border-radius: 24px;
+            padding: 4px 12px 4px 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #ffffff;
+            min-height: 44px;
+            max-height: 48px;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .user-profile-bar:hover {
+            background: rgba(255, 255, 255, 0.28);
+            border-color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+        .user-profile-bar:active {
+            transform: scale(0.98);
+        }
+
+        .avatar-badge-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .user-avatar {
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            min-height: 38px;
+            border-radius: 50% !important;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #FFEED9;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            flex-shrink: 0;
+            box-sizing: border-box;
+        }
+
+        .avatar-edit-icon {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 17px;
+            height: 17px;
+            border-radius: 50%;
+            background: #0284c7;
+            border: 1.5px solid #ffffff;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            pointer-events: none;
+            flex-shrink: 0;
+        }
+        .avatar-edit-icon svg {
+            width: 9px;
+            height: 9px;
+            fill: #ffffff;
+        }
+
+        .user-meta-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: left;
+            min-width: 0;
+            overflow: hidden;
+            line-height: 1.25;
+        }
+
+        .user-name-line {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+            white-space: nowrap;
+        }
+
+        .user-name {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #ffffff;
+            text-shadow: 0 1px 3px rgba(12, 50, 88, 0.35);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+            max-width: 140px;
+        }
+
+        .badge-edit-profile {
+            font-size: 0.68rem;
+            color: #0369a1;
+            background: #f0f9ff;
+            padding: 2px 7px;
+            border-radius: 10px;
+            font-weight: 800;
+            border: 1px solid #bae6fd;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            line-height: 1.2;
+        }
+
+        .user-stats {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #FFEED9;
+            font-weight: 700;
+            font-size: 0.76rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+            margin-top: 2px;
+        }
+        .user-stats #user-elo {
+            color: #FFEED9;
+            font-weight: 700;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .user-stats #user-stats {
+            margin-left: 0;
+            color: rgba(255, 238, 217, 0.9);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Mobile specific layout and typography optimizations */
+        @media (max-width: 680px) {
+            .avatar-modal-box {
+                padding: 14px 10px !important;
+                width: 95% !important;
+                max-height: 94vh !important;
+                border-radius: 12px !important;
+            }
+            .avatar-modal-header {
+                margin: -14px -10px 12px -10px !important;
+                padding: 10px 14px !important;
+            }
+            .avatar-modal-title {
+                font-size: 1rem !important;
+            }
+            .avatar-cards-grid {
+                gap: 6px !important;
+            }
+            .avatar-round-portrait {
+                width: 44px !important;
+                height: 44px !important;
+            }
+            .anim-cards-grid {
+                gap: 6px !important;
+            }
+            .btn-anim-option {
+                padding: 6px 8px !important;
+                min-height: 44px !important;
+            }
+            .avatar-preview-stage {
+                height: 220px !important;
+            }
+        }
+        @media (max-width: 400px) {
+            .avatar-modal-box {
+                padding: 10px 8px !important;
+            }
+            .avatar-modal-title {
+                font-size: 0.9rem !important;
+            }
+            .avatar-round-portrait {
+                width: 38px !important;
+                height: 38px !important;
+            }
+            .avatar-preview-stage {
+                height: 190px !important;
+            }
+        }
+    </style>
+</head>
+<body class="lobby-page">
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="user-info">
+            <div class="user-profile-bar" id="btn-open-profile-trigger" onclick="window.openProfileModal()" role="button" tabindex="0" title="Chỉnh sửa thông tin cá nhân & nhân vật 3D" aria-label="Chỉnh sửa cá nhân">
+                <div class="avatar-badge-wrap">
+                    <span class="user-avatar" id="user-avatar">
+                        <svg class="mono-icon" viewBox="0 0 24 24" style="width:22px;height:22px;color:#0284c7;"><path fill="currentColor" d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 12c-5.33 0-8 2.67-8 4v2h16v-2c0-1.33-2.67-4-8-4z"/></svg>
+                    </span>
+                    <span class="avatar-edit-icon" title="Chỉnh sửa cá nhân">
+                        <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                    </span>
+                </div>
+                <div class="user-meta-info">
+                    <div class="user-name-line">
+                        <span class="user-name" id="user-name">Đang tải...</span>
+                        <span class="badge-edit-profile" title="Chỉnh sửa cá nhân">
+                            <svg class="mono-icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                            <span class="edit-text">Chỉnh sửa</span>
+                        </span>
+                    </div>
+                    <div class="user-stats">
+                        <span id="user-elo">ELO: 1000</span>
+                        <span id="user-stats">Thắng: 0 / Game: 0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Brand Logo in Top Bar -->
+        <div class="top-brand">
+            <img src="assets/logo.png" alt="Merchants of Eldora" class="brand-logo-mini">
+            <div class="brand-text">
+                <span class="brand-title">MERCHANTS OF ELDORA</span>
+                <span class="brand-badge">SEAFARERS 3D</span>
+            </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:12px;">
+            <button class="btn btn-ghost" id="lobby-music-btn" title="Bật / Tắt nhạc nền" style="padding: 7px 14px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                <svg class="mono-icon" style="width:18px;height:18px;vertical-align:middle;" viewBox="0 0 24 24"><path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                <span style="margin-left:5px;">Tắt Nhạc</span>
+            </button>
+            <button class="btn-tutorial-top" id="top-tutorial-btn" title="Chơi màn hướng dẫn từng bước với Bot AI">
+                <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>
+                <span>Chơi Hướng Dẫn</span>
+            </button>
+            <button class="btn-rules" id="rules-btn" title="Cẩm nang hướng dẫn & toàn bộ luật chơi Catan">
+                <span class="rules-icon">
+                    <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+                </span>
+                <span class="rules-text">Luật Chơi</span>
+            </button>
+            <button class="btn btn-ghost" id="logout-btn">Đăng xuất</button>
+        </div>
+    </div>
+
+    <!-- Main Lobby 2-Column Layout (Chat removed) -->
+    <div class="lobby-container">
+        <!-- Left Panel: Friends -->
+        <div class="panel left-panel">
+            <div class="panel-header">
+                <span style="display:inline-flex; align-items:center; gap:8px;">
+                    <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    Bạn bè
+                </span>
+            </div>
+            <div class="panel-content">
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="Tìm tên người chơi...">
+                    <button class="btn btn-primary" id="search-btn">Tìm</button>
+                </div>
+                <div id="search-results" style="display:none; margin-bottom:12px; background:#f0f9ff; border:1.5px solid #38bdf8; border-radius:4px; padding:10px; color:#0c3258;"></div>
+
+                <div style="font-size:0.78rem; text-transform:uppercase; letter-spacing:1px; color:#0c3258; font-weight:800; margin-bottom:6px;">Lời mời kết bạn</div>
+                <div id="requests-list" style="margin-bottom:16px;"></div>
+
+                <div style="font-size:0.78rem; text-transform:uppercase; letter-spacing:1px; color:#0c3258; font-weight:800; margin-bottom:6px;">Danh sách bạn bè</div>
+                <div id="friends-list"></div>
+            </div>
+        </div>
+
+        <!-- Center Panel: Rooms -->
+        <div class="panel center-panel">
+            <!-- Merchants of Eldora Hero Banner with Large Logo Artwork on Top -->
+            <div class="hero-top-section">
+                <div class="lobby-hero-card">
+                    <div class="hero-image-wrap">
+                        <img src="assets/logo.png" alt="Merchants of Eldora Logo" class="hero-logo-banner">
+                    </div>
+                    <div class="hero-info">
+                        <div class="hero-badge">
+                            <svg class="mono-icon" style="margin-right:6px;" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a3 3 0 0 0-3 3c0 1.31.84 2.41 2 2.83V11H7a5 5 0 0 0-5 5v1h2v-1a3 3 0 0 1 3-3h4v6.17c-1.16.42-2 1.52-2 2.83a3 3 0 0 0 6 0c0-1.31-.84-2.41-2-2.83V13h4a3 3 0 0 1 3 3v1h2v-1a5 5 0 0 0-5-5h-4V7.83c1.16-.42 2-1.52 2-2.83a3 3 0 0 0-3-3zm0 2a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
+                            HẢI TRÌNH THƯƠNG GIA ELDORA
+                        </div>
+                        <h1 class="hero-title">MERCHANTS OF ELDORA</h1>
+                        <p class="hero-tagline">Vượt sóng trùng khơi, khai hoang quần đảo và xây dựng đế chế giao thương vĩ đại!</p>
+                        <div class="hero-quick-stats">
+                            <span class="stat-pill">
+                                <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                                2 - 4 Người chơi
+                            </span>
+                            <span class="stat-pill">
+                                <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm0-8c-.83 0-1.5-.67-1.5-1.5S11.17 6 12 6s1.5.67 1.5 1.5S12.83 9 12 9z"/></svg>
+                                Chuẩn luật Catan Quốc Tế
+                            </span>
+                            <span class="stat-pill">
+                                <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l2.4 7.2h7.6l-6.1 4.5 2.3 7.3-6.2-4.5-6.2 4.5 2.3-7.3L2 9.2h7.6z"/></svg>
+                                Đồ họa 3D Tươi Sáng
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Bar: Phòng chơi đang mở below Hero Banner -->
+            <div class="rooms-section-bar">
+                <div class="rooms-section-title">
+                    <svg class="mono-icon" style="margin-right:6px;" viewBox="0 0 24 24"><path fill="currentColor" d="M19 4h-2V3a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v1h-2V3a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v1H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm-1 16H6v-3h12v3zm0-5H6v-3h12v3zm0-5H6V7h12v3z"/></svg>
+                    Phòng chơi đang mở
+                </div>
+                <div class="room-actions">
+                    <button class="btn btn-warning" onclick="window.location.href='game.html?room=TESTWIN'" title="Vào phòng test để xem ngay màn hình chiến thắng 3D" style="padding:7px 14px; font-weight:700; border-radius:0 !important; background:linear-gradient(135deg, #f59e0b, #d97706); border:none; color:#fff; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                        <svg class="mono-icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path fill="currentColor" d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0 0 11 15.9V19H7v2h10v-2h-4v-3.1c1.94-.36 3.48-1.78 3.91-3.66C19.18 11.83 21 9.85 21 7.33V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
+                        <span>Phòng Test Thắng</span>
+                    </button>
+                    <button class="btn btn-primary" id="create-room-btn">
+                        <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                        Tạo phòng mới
+                    </button>
+                    <button class="btn btn-ghost" id="join-code-btn">
+                        <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+                        Vào bằng mã
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel-content rooms-content-area">
+                <div class="rooms-list" id="rooms-list">
+                    <!-- Populated dynamically via lobby.js -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Tab Bar (only shown on mobile via CSS) -->
+    <nav class="mobile-tab-bar mobile-only" id="mobile-tab-bar">
+        <button class="mobile-tab-btn active" id="tab-rooms" onclick="mobileTab('rooms')" aria-label="Phòng chơi">
+            <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19 4h-2V3a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v1h-2V3a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v1H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm-1 16H6v-3h12v3zm0-5H6v-3h12v3zm0-5H6V7h12v3z"/></svg>
+            <span>Phòng</span>
+        </button>
+        <button class="mobile-tab-btn" id="tab-friends" onclick="mobileTab('friends')" aria-label="Bạn bè">
+            <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+            <span>Bạn bè</span>
+        </button>
+        <button class="mobile-tab-btn" id="tab-create" onclick="document.getElementById('create-room-btn').click()" aria-label="Tạo phòng">
+            <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            <span>Tạo Phòng</span>
+        </button>
+        <button class="mobile-tab-btn" id="tab-rules" onclick="document.getElementById('rules-btn').click()" aria-label="Luật chơi">
+            <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+            <span>Luật Chơi</span>
+        </button>
+        <button class="mobile-tab-btn" id="tab-tutorial" onclick="document.getElementById('top-tutorial-btn').click()" aria-label="Hướng dẫn">
+            <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>
+            <span>Tutorial</span>
+        </button>
+    </nav>
+
+
+    <!-- Profile & Avatar Selector Modal (Tươi Sáng Đồng Bộ Với Sảnh) -->
+    <div class="dialog-overlay hidden" id="avatar-modal" style="z-index: 10005;">
+        <div class="dialog-box avatar-modal-box">
+            <!-- Header Tươi Sáng -->
+            <div class="avatar-modal-header">
+                <h3 class="avatar-modal-title">
+                    <svg class="mono-icon" viewBox="0 0 24 24" style="width:20px;height:20px;"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+                    <span>Chỉnh Sửa Cá Nhân & Avatar 3D</span>
+                </h3>
+                <button type="button" id="btn-close-avatar-modal" title="Đóng bảng chỉnh sửa">✕</button>
+            </div>
+
+            <!-- Profile Nav Tabs -->
+            <div class="profile-nav-tabs">
+                <button type="button" class="profile-tab-btn active" id="tab-btn-avatar" onclick="window.switchProfileTab('avatar')">
+                    <svg class="mono-icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-3.5 6c.83 0 1.5.67 1.5 1.5S9.33 11 8.5 11 7 10.33 7 9.5 7.67 8 8.5 8zm7 0c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5zm-3.5 9.5c-2.33 0-4.31-1.46-5.11-3.5h10.22c-.8 2.04-2.78 3.5-5.11 3.5z"/></svg>
+                    <span>Avatar & Điệu Nhảy 3D</span>
+                </button>
+                <button type="button" class="profile-tab-btn" id="tab-btn-account" onclick="window.switchProfileTab('account')">
+                    <svg class="mono-icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                    <span>Đổi Tên & Mật Khẩu</span>
+                </button>
+            </div>
+
+            <!-- TAB 1: AVATAR & 3D CELEBRATION (Light Oceanic Tone) -->
+            <div class="profile-tab-pane active" id="pane-avatar">
+                <div class="avatar-modal-layout">
+                    <!-- Left Column: Character Cards & Animation Chooser -->
+                    <div class="avatar-modal-left" style="display:flex; flex-direction:column; gap:16px;">
+                        <div>
+                            <div class="avatar-step-title" style="color: #0284c7; font-weight: 900; font-size: 1.05rem;">
+                                1. Chọn Avatar Hải Tặc (4 Nhân Vật 3D)
+                            </div>
+                            <p class="avatar-step-desc" style="color: #334155; font-size: 0.85rem; font-weight: 600; margin-top: 3px;">
+                                Hình ảnh chân dung đại diện trong phòng và mô hình 3D trên bục vinh quang:
+                            </p>
+                            <div id="avatar-list-container" class="avatar-cards-grid">
+                                <!-- Populated dynamically by JS with round portraits -->
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="avatar-step-title" style="color: #0284c7; font-weight: 900; font-size: 1.05rem; margin-top: 14px;">
+                                2. Điệu Nhảy Ăn Mừng Chiến Thắng
+                            </div>
+                            <p class="avatar-step-desc" style="color: #334155; font-size: 0.85rem; font-weight: 600; margin-top: 3px;">
+                                Chọn 1 trong 4 phong cách ăn mừng trên bục vinh quang:
+                            </p>
+                            <div id="celebration-anim-list" class="anim-cards-grid">
+                                <!-- Populated dynamically by JS with 4 celebration animations -->
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-primary avatar-save-btn" id="btn-save-avatar" style="color: #0f172a !important; font-weight: 900 !important; font-size: 1rem !important; letter-spacing: 0.5px; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%) !important; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.45) !important;">
+                            XÁC NHẬN & LƯU LỰA CHỌN
+                        </button>
+                    </div>
+
+                    <!-- Right Column: Live 3D Preview Stage (Bright Tropical Sky Theme) -->
+                    <div class="avatar-modal-right" style="display:flex; flex-direction:column; gap:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div class="avatar-preview-title" style="color: #0284c7; font-weight: 900; font-size: 1.02rem;">
+                                Xem Trước 3D Quán Quân
+                            </div>
+                            <span class="avatar-preview-hint" style="color: #0369a1; font-weight: 700;">Kéo chuột xoay 360°</span>
+                        </div>
+
+                        <div id="avatar-preview-3d-stage" class="avatar-preview-stage">
+                            <!-- 3D WebGL Canvas rendered here -->
+                        </div>
+
+                        <div class="avatar-preview-footer">
+                            <div>
+                                <span style="color:#0c3258; font-weight:800;" id="preview-character-name">Thỏ Hải Tặc</span> • <span id="preview-anim-name" style="color:#0284c7; font-weight:800;">Bắn Tim Đáng Yêu</span>
+                            </div>
+                            <span style="font-size:0.75rem; color:#059669; font-weight:900;">● Live 3D</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: ĐỔI TÊN & ĐỔI MẬT KHẨU (Fresh Light Form) -->
+            <div class="profile-tab-pane" id="pane-account">
+                <div class="account-settings-grid">
+                    <!-- Form 1: Đổi Tên Hiển Thị -->
+                    <div class="account-card">
+                        <h4 class="account-card-title">
+                            <svg class="mono-icon" viewBox="0 0 24 24" style="width:17px;height:17px;"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                            <span>Đổi Tên Hiển Thị (Username)</span>
+                        </h4>
+                        <div class="profile-msg-box" id="msg-change-name"></div>
+                        <form id="form-change-name" onsubmit="window.submitChangeName(event)">
+                            <div class="form-group-profile">
+                                <label class="form-label-profile" for="input-new-username" style="color:#0f172a; font-weight:700;">Tên người chơi mới:</label>
+                                <input type="text" id="input-new-username" class="form-input-profile" required minlength="3" maxlength="20" placeholder="VD: Captain_Jack" autocomplete="username">
+                                <span style="font-size:0.75rem; color:#475569; font-weight:500;">3-20 ký tự, chỉ gồm chữ cái, chữ số hoặc dấu gạch dưới (_)</span>
+                            </div>
+                            <button type="submit" class="btn-profile-submit" id="btn-submit-change-name" style="margin-top:14px; width:100%; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
+                                <svg class="mono-icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path fill="currentColor" d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+                                <span>Cập Nhật Tên Mới</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Form 2: Đổi Mật Khẩu -->
+                    <div class="account-card">
+                        <h4 class="account-card-title">
+                            <svg class="mono-icon" viewBox="0 0 24 24" style="width:17px;height:17px;"><path fill="currentColor" d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                            <span>Đổi Mật Khẩu Tài Khoản</span>
+                        </h4>
+                        <div class="profile-msg-box" id="msg-change-password"></div>
+                        <form id="form-change-password" onsubmit="window.submitChangePassword(event)">
+                            <div class="form-group-profile">
+                                <label class="form-label-profile" for="input-current-password" style="color:#0f172a; font-weight:700;">Mật khẩu hiện tại:</label>
+                                <input type="password" id="input-current-password" class="form-input-profile" required placeholder="Nhập mật khẩu hiện tại" autocomplete="current-password">
+                            </div>
+                            <div class="form-group-profile" style="margin-top:8px;">
+                                <label class="form-label-profile" for="input-new-password" style="color:#0f172a; font-weight:700;">Mật khẩu mới:</label>
+                                <input type="password" id="input-new-password" class="form-input-profile" required minlength="6" placeholder="Tối thiểu 6 ký tự" autocomplete="new-password">
+                            </div>
+                            <div class="form-group-profile" style="margin-top:8px;">
+                                <label class="form-label-profile" for="input-confirm-password" style="color:#0f172a; font-weight:700;">Xác nhận mật khẩu mới:</label>
+                                <input type="password" id="input-confirm-password" class="form-input-profile" required minlength="6" placeholder="Nhập lại mật khẩu mới" autocomplete="new-password">
+                            </div>
+                            <button type="submit" class="btn-profile-submit" id="btn-submit-change-password" style="margin-top:14px; width:100%; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
+                                <svg class="mono-icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path fill="currentColor" d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+                                <span>Đổi Mật Khẩu</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Stats Card Summary -->
+                    <div class="profile-stats-card">
+                        <div class="stat-badge-item">
+                            <div class="stat-badge-val" id="profile-stat-elo">1000</div>
+                            <div class="stat-badge-lbl">Hạng ELO</div>
+                        </div>
+                        <div class="stat-badge-item">
+                            <div class="stat-badge-val" id="profile-stat-wins">0</div>
+                            <div class="stat-badge-lbl">Trận Thắng</div>
+                        </div>
+                        <div class="stat-badge-item">
+                            <div class="stat-badge-val" id="profile-stat-games">0</div>
+                            <div class="stat-badge-lbl">Tổng Trận</div>
+                        </div>
+                        <div class="stat-badge-item">
+                            <div class="stat-badge-val" id="profile-stat-winrate">0%</div>
+                            <div class="stat-badge-lbl">Tỷ Lệ Thắng</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dialog-overlay hidden" id="create-modal">
+        <div class="dialog">
+            <h2 style="margin-top: 0; color: var(--gold);">Tạo phòng chơi mới</h2>
+            <form id="create-room-form">
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--text-muted);">Tên phòng</label>
+                    <input type="text" id="room-name-input" required value="Đại Hải Trình" style="width:100%; padding:8px; border-radius:0 !important; border:1px solid var(--border); background:rgba(0,0,0,0.4); color:#fff;">
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--text-muted);">Số người chơi</label>
+                    <select id="room-max-players" style="width:100%; padding:8px; border-radius:0 !important; border:1px solid var(--border); background:#0d2340; color:#fff;">
+                        <option value="2">2 Người</option>
+                        <option value="3" selected>3 Người</option>
+                        <option value="4">4 Người</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--text-muted);">Bản đồ kịch bản</label>
+                    <select id="room-scenario" style="width:100%; padding:8px; border-radius:0 !important; border:1px solid var(--border); background:#0d2340; color:#fff;">
+                        <option value="voyages">Voyages of Discovery (13 VP)</option>
+                        <option value="islands">The Four Islands (12 VP)</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="button" class="btn btn-ghost" id="close-create-btn" style="flex: 1; border-radius:0 !important;">Hủy</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1; border-radius:0 !important;">Tạo phòng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Join by Code Modal -->
+    <div class="dialog-overlay hidden" id="join-code-modal">
+        <div class="dialog">
+            <h2 style="margin-top: 0; color: var(--gold);">Vào phòng bằng mã</h2>
+            <form id="join-code-form">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display:block; margin-bottom:4px; font-size:0.85rem; color:var(--text-muted);">Mã phòng (6 ký tự)</label>
+                    <input type="text" id="join-code-input" required maxlength="6" placeholder="VD: ABC123" style="width:100%; padding:8px; border-radius:0 !important; border:1px solid var(--border); background:rgba(0,0,0,0.4); color:#fff; text-transform:uppercase; font-size:1.2rem; letter-spacing:2px; text-align:center;">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn btn-ghost" id="close-join-code-btn" style="flex: 1; border-radius:0 !important;">Hủy</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1; border-radius:0 !important;">Tham gia</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Comprehensive Rules & Guide Modal -->
+    <div class="dialog-overlay hidden" id="rules-modal">
+        <div class="dialog rules-dialog">
+            <div class="rules-header">
+                <div class="rules-title-box">
+                    <svg class="mono-icon" style="width:32px;height:32px;color:var(--gold);" viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                    <div>
+                        <h2 class="rules-title">TOÀN BỘ LUẬT CHƠI CATAN & SEAFARERS</h2>
+                        <div class="rules-subtitle">Cẩm nang hướng dẫn chi tiết từ A đến Z - Quy chuẩn quốc tế kèm ví dụ thực tế</div>
+                    </div>
+                </div>
+                <button class="rules-close-btn" id="close-rules-btn" title="Đóng hướng dẫn">✕</button>
+            </div>
+
+            <!-- Sticky Category Navigation -->
+            <div class="rules-nav">
+                <button class="rules-nav-btn active" data-target="sec-overview">1. Mục Tiêu & VP</button>
+                <button class="rules-nav-btn" data-target="sec-setup">2. Setup & Luật 2 Cạnh</button>
+                <button class="rules-nav-btn" data-target="sec-turn">3. Cấu Trúc Lượt Chơi</button>
+                <button class="rules-nav-btn" data-target="sec-resources">4. Tài Nguyên & Giá Xây</button>
+                <button class="rules-nav-btn" data-target="sec-seafarers">5. Đại Hải Trình</button>
+                <button class="rules-nav-btn" data-target="sec-robber">6. Tên Cướp & Số 7</button>
+                <button class="rules-nav-btn" data-target="sec-trade">7. Giao Dịch & Cảng</button>
+                <button class="rules-nav-btn" data-target="sec-devcards">8. Thẻ Phát Triển</button>
+                <button class="rules-nav-btn" data-target="sec-tips">9. Mẹo & Chiến Thuật</button>
+            </div>
+
+            <!-- Scrollable Content Body -->
+            <div class="rules-body" id="rules-body">
+                
+                <!-- Section 1: Overview & Victory Points -->
+                <div class="rules-section" id="sec-overview">
+                    <div class="sec-heading">
+                        <span class="sec-badge">PHẦN 1</span>
+                        <h3>MỤC TIÊU CHIẾN THẮNG & ĐIỂM VICTORY POINTS (VP)</h3>
+                    </div>
+                    <p>Trong Catan, người chơi đóng vai trò là những nhà khai hoang trên quần đảo Catan. Bạn sẽ thu thập tài nguyên để xây dựng đường sá, thuyền buồm, khu định cư và nâng cấp lên các thành phố trù phú.</p>
+                    <div class="highlight-box">
+                        <strong>Điều kiện chiến thắng:</strong> Người chơi đầu tiên đạt đủ số Điểm Chiến Thắng (Victory Points - VP) trong lượt của mình sẽ lập tức giành chiến thắng!
+                        <div style="margin-top: 6px; font-weight: 500;">
+                            • Bản đồ Cơ bản: <strong>10 Điểm (10 VP)</strong><br>
+                            • Kịch bản The Four Islands (4 Hòn đảo): <strong>12 Điểm (12 VP)</strong><br>
+                            • Kịch bản Voyages of Discovery (Đại Hải Trình): <strong>13 Điểm (13 VP)</strong>
+                        </div>
+                    </div>
+                    <h4 style="color: var(--gold); margin: 16px 0 8px;">Bảng Tính Điểm Chiến Thắng (VP)</h4>
+                    <div class="rules-table-container">
+                        <table class="rules-table">
+                            <thead>
+                                <tr>
+                                    <th>Hạng Mục</th>
+                                    <th>Số Điểm (VP)</th>
+                                    <th>Mô Tả & Điều Kiện</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Khu Định Cư (Settlement)</strong></td>
+                                    <td><span class="vp-pill">1 VP</span></td>
+                                    <td>Mỗi khu định cư trên bàn cờ mang lại 1 điểm. Bạn bắt đầu ván với 2 định cư (2 VP).</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Thành Phố (City)</strong></td>
+                                    <td><span class="vp-pill">2 VP</span></td>
+                                    <td>Nâng cấp từ Khu định cư (+1 VP so với định cư). Cho gấp đôi sản lượng tài nguyên.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Con Đường Dài Nhất (Longest Road)</strong></td>
+                                    <td><span class="vp-pill">2 VP</span></td>
+                                    <td>Trao cho người đầu tiên nối chuỗi đường/thuyền liên tục từ <strong>5 đoạn</strong> trở lên. Người nào vượt qua kỷ lục sẽ cướp danh hiệu này!</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Đội Quân Mạnh Nhất (Largest Army)</strong></td>
+                                    <td><span class="vp-pill">2 VP</span></td>
+                                    <td>Trao cho người đầu tiên kích hoạt và lật mở tối thiểu <strong>3 thẻ Hiệp Sĩ (Knight)</strong>. Người có số Hiệp sĩ nhiều hơn sẽ giành lấy danh hiệu này.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Thẻ Điểm Ẩn (Victory Point Card)</strong></td>
+                                    <td><span class="vp-pill">1 VP / thẻ</span></td>
+                                    <td>Rút từ xấp Thẻ Phát Triển. Giữ bí mật trên tay cho đến khi đủ điểm tuyên bố thắng cuộc!</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Khám Phá Đảo Mới (Seafarers Bonus)</strong></td>
+                                    <td><span class="vp-pill">+1 đến +2 VP</span></td>
+                                    <td>Điểm thưởng đặc biệt khi bạn vượt biển và xây Khu định cư đầu tiên trên một hòn đảo mới lạ xa bờ.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Section 2: Setup Phase -->
+                <div class="rules-section" id="sec-setup">
+                    <div class="sec-heading">
+                        <span class="sec-badge">PHẦN 2</span>
+                        <h3>GIAI ĐOẠN THIẾT LẬP (SETUP) & QUY TẮC KHOẢNG CÁCH</h3>
+                    </div>
+                    <p>Trước khi bắt đầu các vòng chơi chính, tất cả người chơi tham gia giai đoạn thiết lập ban đầu (Setup) để đặt 2 Khu định cư và 2 Con đường/Thuyền khởi đầu.</p>
+                    
+                    <h4 style="color: var(--gold); margin: 14px 0 6px;">Thứ tự đặt quân (Snake Order):</h4>
+                    <div class="step-card">
+                        <strong>Vòng 1 (Theo chiều kim đồng hồ):</strong>
+                        <div>Người 1 ➔ Người 2 ➔ Người 3 ➔ Người 4. Mỗi người đặt <strong>1 Khu định cư</strong> tại một đỉnh hợp lệ và <strong>1 Con đường (hoặc Thuyền)</strong> nối liền với định cư đó.</div>
+                    </div>
+                    <div class="step-card" style="margin-top: 8px;">
+                        <strong>Vòng 2 (Đảo chiều ngược lại):</strong>
+                        <div>Người 4 ➔ Người 3 ➔ Người 2 ➔ Người 1. Mỗi người đặt tiếp <strong>Khu định cư thứ 2</strong> và <strong>Con đường / Thuyền thứ 2</strong> nối liền với định cư đó.</div>
+                    </div>
+
+                    <div class="alert-box danger-box" style="margin-top: 15px;">
+                        <div style="font-weight: bold; font-size: 1.05rem; margin-bottom: 4px;">[LƯU Ý QUAN TRỌNG] QUY TẮC KHOẢNG CÁCH (LUẬT 2 CẠNH - DISTANCE RULE)</div>
+                        <div>Mọi Khu định cư hay Thành phố <strong>BẮT BUỘC phải cách nhau ít nhất 2 cạnh đường trống</strong> (khoảng cách tối thiểu 2 bước cạnh). Bạn <strong>KHÔNG ĐƯỢC PHÉP</strong> đặt định cư ở đỉnh liền kề với bất kỳ công trình nào khác (kể cả của bạn hay đối thủ).</div>
+                    </div>
+
+                    <div class="example-box" style="margin-top: 14px;">
+                        <span class="example-tag">VÍ DỤ VỀ TÀI NGUYÊN KHỞI ĐẦU</span>
+                        <p>Sau khi bạn đặt Khu định cư thứ 2 ở Vòng 2, bạn nhận ngay <strong>1 thẻ tài nguyên</strong> cho mỗi ô đất tiếp giáp với Khu định cư thứ 2 đó:</p>
+                        <div>• Giả sử ở Vòng 2, bạn đặt định cư thứ 2 tại ngã ba giữa: <strong>Rừng rậm</strong>, <strong>Cánh đồng</strong> và <strong>Đồi đất sét</strong>.</div>
+                        <div>• ➔ Bạn nhận ngay lập tức: <strong>1 Gỗ + 1 Lúa + 1 Gạch</strong> vào túi đồ để sẵn sàng cho lượt chơi đầu tiên!</div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Turn Structure -->
+                <div class="rules-section" id="sec-turn">
+                    <div class="sec-heading">
+                        <span class="sec-badge">PHẦN 3</span>
+                        <h3>CẤU TRÚC MỘT LƯỢT CHƠI (THE TURN SEQUENCE)</h3>
+                    </div>
+                    <p>Khi đến lượt của bạn, lượt chơi diễn ra tuần tự qua các giai đoạn sau:</p>
+
+                    <div class="phase-container">
+                        <div class="phase-card">
+                            <div class="phase-num">1</div>
+                            <div class="phase-content">
+                                <div class="phase-title">GIAI ĐOẠN SẢN XUẤT (Gieo Xúc Xắc)</div>
+                                <p>Bạn bấm nút <strong>"Gieo Xúc Xắc"</strong> (tung 2 viên xí ngầu, tổng điểm từ 2 đến 12):</p>
+                                <ul>
+                                    <li><strong>Nếu ra số 2, 3, 4, 5, 6, 8, 9, 10, 11, 12:</strong> Tất cả các ô đất mang con số này sẽ phát tài nguyên cho TẤT CẢ người chơi có công trình ở đỉnh kề (Định cư = 1 thẻ, Thành phố = 2 thẻ).</li>
+                                    <li><strong>Nếu ra số 7:</strong> Bão cướp bóc kích hoạt! Không ai nhận tài nguyên. Những ai cầm trên 7 thẻ bài bị nộp phạt 1/2, và bạn được di chuyển Tên Cướp/Cướp Biển (Xem Phần 6).</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="phase-card">
+                            <div class="phase-num">2</div>
+                            <div class="phase-content">
+                                <div class="phase-title">GIAI ĐOẠN GIAO DỊCH (Trading)</div>
+                                <p>Bạn có thể trao đổi tài nguyên để tìm kiếm nguyên liệu mình còn thiếu:</p>
+                                <ul>
+                                    <li><strong>Giao dịch với người chơi khác:</strong> Thương lượng tự do (VD: 1 Lúa đổi 1 Đá, 2 Cừu đổi 1 Gỗ...).</li>
+                                    <li><strong>Giao dịch với Ngân hàng:</strong> Tỷ lệ cố định <strong>4 đổi 1</strong> (4 thẻ giống nhau lấy 1 thẻ bất kỳ).</li>
+                                    <li><strong>Giao dịch Cảng biển:</strong> Tỷ lệ ưu đãi <strong>3:1</strong> hoặc <strong>2:1</strong> nếu bạn sở hữu Cảng (Xem Phần 7).</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="phase-card">
+                            <div class="phase-num">3</div>
+                            <div class="phase-content">
+                                <div class="phase-title">GIAI ĐOẠN XÂY DỰNG & DÙNG THẺ (Building & Actions)</div>
+                                <p>Dùng tài nguyên thu thập được để bành trướng lãnh thổ:</p>
+                                <ul>
+                                    <li>Xây Đường sá hoặc Thuyền buồm để kết nối.</li>
+                                    <li>Xây thêm Khu định cư mới hoặc nâng cấp định cư cũ thành Thành phố.</li>
+                                    <li>Mua Thẻ Phát Triển hoặc kích hoạt 1 thẻ trên tay.</li>
+                                    <li>Khi hoàn tất mọi việc, bấm <strong>"HẾT LƯỢT"</strong> để nhường lượt cho người chơi tiếp theo.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Resources & Costs -->
+                <div class="rules-section" id="sec-resources">
+                    <div class="sec-heading">
+                        <span class="sec-badge">PHẦN 4</span>
+                        <h3>5 LOẠI TÀI NGUYÊN & BẢNG GIÁ XÂY DỰNG</h3>
+                    </div>
+
+                    <h4 style="color: var(--gold); margin-bottom: 10px;">Các Loại Ô Đất & Tài Nguyên Tương Ứng</h4>
+                    <div class="resource-grid">
+                        <div class="res-item" title="Thẻ Gỗ (Lumber)">
+                            <div class="res-card-frame">
+                                <img src="assets/cards/card_lumber.png" alt="Thẻ Gỗ (Lumber)" class="res-card-img" loading="lazy">
+                            </div>
+                            <div class="res-info">
+                                <span class="res-name" style="color: #4ade80;">Gỗ (Lumber)</span>
+                                <span class="res-source">🌲 Rừng Rậm</span>
+                                <small class="res-lore">Đóng thuyền buồm & đường bộ</small>
+                            </div>
+                        </div>
+                        <div class="res-item" title="Thẻ Gạch (Brick)">
+                            <div class="res-card-frame">
+                                <img src="assets/cards/card_brick.png" alt="Thẻ Gạch (Brick)" class="res-card-img" loading="lazy">
+                            </div>
+                            <div class="res-info">
+                                <span class="res-name" style="color: #f87171;">Gạch (Brick)</span>
+                                <span class="res-source">🧱 Đồi Đất Sét</span>
+                                <small class="res-lore">Xây đường & móng định cư</small>
+                            </div>
+                        </div>
+                        <div class="res-item" title="Thẻ Cừu (Wool)">
+                            <div class="res-card-frame">
+                                <img src="assets/cards/card_wool.png" alt="Thẻ Cừu (Wool)" class="res-card-img" loading="lazy">
+                            </div>
+                            <div class="res-info">
+                                <span class="res-name" style="color: #a3e635;">Cừu / Len (Wool)</span>
+                                <span class="res-source">🐑 Đồng Cỏ</span>
+                                <small class="res-lore">May buồm tàu & định cư</small>
+                            </div>
+                        </div>
+                        <div class="res-item" title="Thẻ Lúa (Grain)">
+                            <div class="res-card-frame">
+                                <img src="assets/cards/card_grain.png" alt="Thẻ Lúa (Grain)" class="res-card-img" loading="lazy">
+                            </div>
+                            <div class="res-info">
+                                <span class="res-name" style="color: #facc15;">Lúa / Mì (Grain)</span>
+                                <span class="res-source">🌾 Cánh Đồng</span>
+                                <small class="res-lore">Lên Thành Phố & Thẻ PT</small>
+                            </div>
+                        </div>
+                        <div class="res-item" title="Thẻ Quặng (Ore)">
+                            <div class="res-card-frame">
+                                <img src="assets/cards/card_ore.png" alt="Thẻ Quặng (Ore)" class="res-card-img" loading="lazy">
+                            </div>
+                            <div class="res-info">
+                                <span class="res-name" style="color: #94a3b8;">Đá / Quặng (Ore)</span>
+                                <span class="res-source">⛰️ Dãy Núi Quặng</span>
+                                <small class="res-lore">Đại đô thị & Hiệp Sĩ</small>
+                            </div>
+                        </div>
+                        <div class="res-item" title="Thẻ Mỏ Vàng (Gold)">
+                            <div class="res-card-frame">
+                                <img src="assets/cards/card_gold.png" alt="Thẻ Mỏ Vàng (Gold)" class="res-card-img" loading="lazy">
+                            </div>
+                            <div class="res-info">
+                                <span class="res-name" style="color: #fbbf24;">Mỏ Vàng (Gold)</span>
+                                <span class="res-source">✨ Sông Vàng</span>
+                                <small class="res-lore">Tự chọn 1 tài nguyên bất kỳ</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 style="color: var(--gold); margin: 20px 0 10px;">Bảng Giá Chi Phí Xây Dựng Chi Tiết</h4>
+                    <div class="rules-table-container">
+                        <table class="rules-table">
+                            <thead>
+                                <tr>
+                                    <th>Công Trình / Mục Mua</th>
+                                    <th>Tài Nguyên Cần Dùng</th>
+                                    <th>Công Dụng & Quyền Lợi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Con Đường (Road)</strong></td>
+                                    <td><span class="res-cost-tag">1 Gỗ + 1 Gạch</span></td>
+                                    <td>Đặt trên các cạnh đất liền. Nối dài lãnh thổ, cạnh tranh "Con Đường Dài Nhất" (2 VP).</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Thuyền Buồm (Ship)</strong></td>
+                                    <td><span class="res-cost-tag">1 Gỗ + 1 Cừu</span></td>
+                                    <td>Đặt trên các cạnh biển/bờ biển. Mở đường ra hải phận, khám phá các hòn đảo mới.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Khu Định Cư (Settlement)</strong></td>
+                                    <td><span class="res-cost-tag">1 Gỗ + 1 Gạch + 1 Lúa + 1 Cừu</span></td>
+                                    <td>Cho <strong>1 VP</strong>. Nhận 1 tài nguyên mỗi khi ô tiếp giáp trúng số. Phải tuân thủ Luật 2 Cạnh.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Thành Phố (City)</strong></td>
+                                    <td><span class="res-cost-tag">3 Đá + 2 Lúa</span></td>
+                                    <td>Nâng cấp 1 Định Cư có sẵn. Tăng lên <strong>2 VP</strong>. Nhận <strong>GẤP ĐÔI (2 tài nguyên)</strong> mỗi lần trúng số!</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Thẻ Phát Triển (Dev Card)</strong></td>
+                                    <td><span class="res-cost-tag">1 Đá + 1 Cừu + 1 Lúa</span></td>
+                                    <td>Rút 1 lá bài may mắn (Hiệp sĩ, Tiến bộ hoặc Điểm ẩn 1 VP).</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Section 5: Seafarers Expansion -->
+                <div class="rules-section" id="sec-seafarers">
+                    <div class="sec-heading">
+                        <span class="sec-badge">PHẦN 5</span>
+                        <h3>BẢN MỞ RỘNG ĐẠI HẢI TRÌNH (SEAFARERS)</h3>
+                    </div>
+                    <p>Bản mở rộng Seafarers đưa người chơi vượt ra khỏi bờ biển đảo chính để khám phá đại dương và các hòn đảo kỳ thú.</p>
+
+                    <div class="step-card">
+                        <strong>1. Đóng Thuyền & Tuyến Hải Trình:</strong>
+                        <p>Thuyền buồm hoạt động như đường bộ nhưng di chuyển trên các cạnh biển (Water edges). Bạn có thể nối tiếp tuyến thuyền từ một khu định cư ven biển. Đường bộ và thuyền buồm kết nối thông suốt với nhau qua các khu định cư ven bờ.</p>
+                    </div>
+
+                    <div class="step-card" style="margin-top: 10px;">
+                        <strong>2. Di Chuyển Thuyền Mở (Moving an Open Ship):</strong>
+                        <p>Nếu chiếc thuyền ở đầu hải trình của bạn không bị khóa bởi định cư hoặc thuyền khác (gọi là <em>Thuyền Mở</em>), bạn được quyền <strong>nhấc chiếc thuyền đó lên và đặt sang một vị trí cạnh biển hợp lệ khác</strong> trong lượt của mình (miễn là bạn chưa đóng thêm thuyền mới trong lượt đó)!</p>
+                    </div>
+
+                    <div class="step-card" style="margin-top: 10px;">
+                        <strong>3. Khám Phá Đảo Mới & Điểm Catan Đặc Biệt:</strong>
+                        <p>Khi hải trình của bạn chạm đến một hòn đảo mới lạ xa bờ và bạn dựng Khu định cư đầu tiên trên hòn đảo đó, bạn sẽ được thưởng ngay <strong>+1 hoặc +2 Điểm Catan Đặc Biệt (VP)</strong>!</p>
+                    </div>
+                </div>
+
+                <!-- Section 6: Robber & Number 7 -->
+                <div class="rules-section" id="sec-robber">
+                    <div class="sec-heading">
+                        <span class="sec-badge">PHẦN 6</span>
+                        <h3>TÊN CƯỚP (ROBBER) & CƯỚP BIỂN (PIRATE) KHI GIEO SỐ 7</h3>
+                    </div>
+                    <p>Số 7 là con số có xác suất xuất hiện cao nhất trên 2 viên xúc xắc (6/36 = 16.7%). Khi số 7 xuất hiện, không có ô đất nào sản xuất tài nguyên, mà quy trình bão cướp sau sẽ diễn ra:</p>
+
+                    <div class="alert-box danger-box">
+                        <div style="font-weight: bold; font-size: 1.05rem; margin-bottom: 4px;">1. LUẬT NỘP PHẠT BỎ BÀI NẾU CẦM TRÊN 7 THẺ</div>
+                        <div>BẤT KỲ người chơi nào (kể cả người vừa gieo ra 7) đang cầm <strong>từ 8 thẻ trở lên</strong> trên tay đều lập tức bị phạt: <strong>Phải tự chọn và nộp bỏ đúng 1/2 số thẻ</strong> (làm tròn xuống).</div>
+                    </div>
+
+                    <div class="example-box" style="margin-top: 10px;">
+                        <span class="example-tag">VÍ DỤ PHẠT THẺ BÀI SỐ 7</span>
+                        <div>• Người chơi A có <strong>8 thẻ</strong> ➔ Phải bỏ đúng <strong>4 thẻ</strong> (còn 4 thẻ).</div>
+                        <div>• Người chơi B có <strong>9 thẻ</strong> ➔ Phải bỏ đúng <strong>4 thẻ</strong> (9 / 2 = 4.5 ➔ làm tròn xuống 4, còn lại 5 thẻ).</div>
+                        <div>• Người chơi C có <strong>7 thẻ</strong> hoặc ít hơn ➔ <strong>AN TOÀN</strong>, không bị mất thẻ nào!</div>
+                    </div>
+
+                    <div class="step-card" style="margin-top: 14px;">
+                        <strong>2. Di chuyển Tên Cướp hoặc Cướp Biển:</strong>
+                        <p>Người gieo số 7 bắt buộc phải di chuyển:</p>
+                        <ul>
+                            <li><strong>Tên Cướp (Robber):</strong> Đặt sang 1 ô đất liền khác. Ô đất bị Tên Cướp chiếm đóng sẽ <strong>BỊ PHONG TỎA</strong> hoàn toàn: Khi số của ô đất đó được gieo ra, không một ai nhận được tài nguyên từ ô đó!</li>
+                            <li><strong>Cướp Biển (Pirate):</strong> Đặt sang 1 ô biển. Cướp Biển ngăn chặn đối thủ đóng hoặc di chuyển thuyền tại ô biển đó.</li>
+                        </ul>
+                    </div>
+
+                    <div class="step-card" style="margin-top: 10px;">
+                        <strong>3. Cướp thẻ bài từ đối thủ:</strong>
+                        <p>Sau khi đặt Tên Cướp sang ô đất mới, bạn được quyền chọn 1 người chơi có định cư hoặc thành phố tiếp giáp ô đất đó và <strong>rút trộm ngẫu nhiên 1 thẻ tài nguyên</strong> trên tay họ vào túi đồ của mình!</p>
+                    </div>
+                </div>
+
+                <!-- Section 7: Trading & Ports -->
+                <div class="rules-section" id="sec-trade">
+                    <div class="sec-heading">
+                        <span class="sec-badge">PHẦN 7</span>
+                        <h3>GIAO DỊCH & HỆ THỐNG CẢNG BIỂN (PORTS)</h3>
+                    </div>
+                    <p>Giao dịch là chìa khóa để giải quyết vấn đề khan hiếm tài nguyên hoặc dư thừa nguyên liệu không dùng tới:</p>
+
+                    <div class="trade-types-grid">
+                        <div class="trade-card">
+                            <div class="trade-title">Giao Dịch Người Chơi</div>
+                            <div class="trade-badge">Tỷ lệ tự do</div>
+                            <p>Diễn ra trong lượt của bạn. Bạn có thể tự do thỏa thuận với các người chơi khác (VD: 1 Lúa đổi 1 Đá, 2 Gỗ đổi 1 Gạch). <em>Lưu ý: Không được trao tặng không tài nguyên (phải là trao đổi hai chiều).</em></p>
+                        </div>
+
+                        <div class="trade-card">
+                            <div class="trade-title">Giao Dịch Ngân Hàng</div>
+                            <div class="trade-badge">Tỷ lệ 4:1</div>
+                            <p>Bất kỳ lúc nào trong lượt, bạn có thể nộp <strong>4 thẻ cùng loại</strong> cho ngân hàng để đổi lấy <strong>1 thẻ tài nguyên bất kỳ</strong> bạn cần (VD: 4 Cừu ➔ 1 Gạch).</p>
+                        </div>
+
+                        <div class="trade-card">
+                            <div class="trade-title">Cảng Biển Thường (?)</div>
+                            <div class="trade-badge">Tỷ lệ 3:1</div>
+                            <p>Nếu bạn có định cư kề Cảng 3:1, bạn chỉ cần nộp <strong>3 thẻ cùng loại bất kỳ</strong> để lấy 1 thẻ tùy chọn (VD: 3 Gỗ ➔ 1 Đá). Tiết kiệm hơn rất nhiều so với ngân hàng!</p>
+                        </div>
+
+                        <div class="trade-card">
+                            <div class="trade-title">Cảng Chuyên Dụng</div>
+                            <div class="trade-badge">Tỷ lệ 2:1</div>
+                            <p>Cảng có biểu tượng cụ thể (Gỗ, Lúa, Đá, Cừu, Gạch). Chỉ cần <strong>2 thẻ đúng loại của cảng đó</strong> để đổi lấy 1 thẻ bất kỳ! (VD: Sở hữu Cảng Đá ➔ 2 Đá đổi được 1 Lúa).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 8: Development Cards -->
+                <div class="rules-section" id="sec-devcards">
+                    <div class="sec-heading">
+                        <span class="sec-badge">PHẦN 8</span>
+                        <h3>BỘ THẺ PHÁT TRIỂN (DEVELOPMENT CARDS)</h3>
+                    </div>
+                    <p>Mua bằng chi phí <strong>1 Đá + 1 Cừu + 1 Lúa</strong>. Các lá bài phát triển gồm 3 nhóm sức mạnh:</p>
+
+                    <div class="devcard-list">
+                        <div class="devcard-box">
+                            <div class="devcard-header">THẺ HIỆP SĨ (KNIGHT) - Chiếm đa số bộ bài</div>
+                            <p>Khi đánh thẻ này, bạn được lập tức di chuyển Tên Cướp/Cướp Biển và cướp 1 thẻ bài từ đối thủ tiếp giáp. Thẻ sau khi dùng sẽ được lật mở trước mặt bạn.</p>
+                            <div class="alert-box success-box" style="margin-top: 6px;">
+                                <strong>Đội Quân Mạnh Nhất (Largest Army - 2 VP):</strong> Người đầu tiên lật mở đủ <strong>3 thẻ Hiệp Sĩ</strong> sẽ nắm giữ danh hiệu này. Nếu ai đó có số Hiệp Sĩ nhiều hơn, danh hiệu sẽ chuyển sang người đó!
+                            </div>
+                        </div>
+
+                        <div class="devcard-box">
+                            <div class="devcard-header">THẺ TIẾN BỘ (PROGRESS CARDS)</div>
+                            <ul>
+                                <li><strong>Xây Đường (Road Building):</strong> Xây ngay lập tức <strong>2 đoạn đường bộ hoặc 2 thuyền buồm hoàn toàn miễn phí</strong>.</li>
+                                <li><strong>Bội Thu (Year of Plenty):</strong> Lấy ngay <strong>2 thẻ tài nguyên bất kỳ</strong> từ ngân hàng vào tay bạn.</li>
+                                <li><strong>Độc Quyền (Monopoly):</strong> Đọc tên 1 loại tài nguyên (VD: "Đá"). TẤT CẢ đối thủ trên bàn phải giao nộp toàn bộ tài nguyên loại đó họ đang có cho bạn!</li>
+                            </ul>
+                        </div>
+
+                        <div class="devcard-box">
+                            <div class="devcard-header">THẺ ĐIỂM CHIẾN THẮNG ẨN (VICTORY POINT)</div>
+                            <p>Mỗi thẻ tương ứng với <strong>1 VP vĩnh viễn</strong> (Thư viện, Đại học, Tòa thị chính...). Thẻ này được giữ úp bí mật, chỉ mở ra khi bạn tuyên bố chiến thắng!</p>
+                        </div>
+                    </div>
+
+                    <div class="alert-box danger-box" style="margin-top: 14px;">
+                        <strong>[LƯU Ý] Quy tắc sử dụng thẻ phát triển:</strong>
+                        <div style="margin-top: 4px;">
+                            • Mỗi lượt bạn chỉ được đánh <strong>tối đa 1 Thẻ Phát Triển</strong>.<br>
+                            • Không được đánh thẻ vừa mua trong cùng một lượt (phải đợi sang lượt tiếp theo), ngoại trừ Thẻ Điểm Chiến Thắng Ẩn nếu nó giúp bạn đủ điểm thắng ngay lập tức!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 9: Pro Tips & Strategy -->
+                <div class="rules-section" id="sec-tips">
+                    <div class="sec-heading">
+                        <span class="sec-badge">PHẦN 9</span>
+                        <h3>MẸO & CHIẾN THUẬT ĐỈNH CAO TỪ CAO THỦ</h3>
+                    </div>
+
+                    <div class="tip-card">
+                        <div class="tip-num">1</div>
+                        <div class="tip-body">
+                            <strong>Đọc xác suất con số trên bàn cờ:</strong>
+                            <div>Các số <strong>6 và 8 màu đỏ</strong> có nhiều chấm nhất (5 chấm = xác suất cao nhất). Kế tiếp là <strong>5 và 9</strong> (4 chấm), <strong>4 và 10</strong> (3 chấm). Tránh đặt khu định cư ở nơi chỉ có số 2, 12, 3 vì sản lượng tài nguyên sẽ rất khan hiếm!</div>
+                        </div>
+                    </div>
+
+                    <div class="tip-card">
+                        <div class="tip-num">2</div>
+                        <div class="tip-body">
+                            <strong>Chiến lược Mở Rộng Ban Đầu (Early Expansion):</strong>
+                            <div>Đầu trận, cặp tài nguyên <strong>Gỗ + Gạch</strong> là quan trọng nhất để xây đường và chiếm các giao điểm vàng trước khi bị đối thủ chặn đường.</div>
+                        </div>
+                    </div>
+
+                    <div class="tip-card">
+                        <div class="tip-num">3</div>
+                        <div class="tip-body">
+                            <strong>Chiến lược Đô Thị Hóa Cuối Trận (Late Game Engine):</strong>
+                            <div>Về giữa và cuối trận, cặp <strong>Đá + Lúa</strong> quyết định thắng bại. Xây Thành phố giúp nhân đôi sản lượng và mang lại 2 VP quý giá. Đồng thời tích cực mua Thẻ Phát Triển để giấu điểm ẩn và giành Đội Quân Mạnh Nhất!</div>
+                        </div>
+                    </div>
+
+                    <div class="tip-card">
+                        <div class="tip-num">4</div>
+                        <div class="tip-body">
+                            <strong>Nghệ thuật Quản Lý Bài - Tránh bão số 7:</strong>
+                            <div>Trước khi bấm "Hết Lượt", luôn đếm số thẻ trên tay. Nếu đang cầm 7 thẻ trở lên, hãy cố gắng giao dịch hoặc xây dựng bất kỳ thứ gì có thể để hạ số lượng xuống dưới 8 thẻ, đề phòng đối thủ gieo ra 7 khiến bạn mất trắng một nửa số bài!</div>
+                        </div>
+                    </div>
+
+                    <div class="tip-card">
+                        <div class="tip-num">5</div>
+                        <div class="tip-body">
+                            <strong>Khai thác Cảng biển thông minh:</strong>
+                            <div>Nếu bạn chiếm được một ô đất có sản lượng tài nguyên áp đảo (ví dụ ô Cừu số 6 hoặc số 8), hãy cố gắng xây định cư tại <strong>Cảng Cừu 2:1</strong>. Khi đó cứ 2 con cừu sẽ biến thành bất kỳ tài nguyên nào bạn muốn, tạo thành bộ máy sản xuất vô địch!</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Early cached avatar display to avoid initial pop-in
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedAvatar = localStorage.getItem('userAvatar') || 'bunny_pirate';
+            const av = document.getElementById('user-avatar');
+            if (av) {
+                const avatarImages = {
+                    'bunny_pirate': 'assets/images/avatars/avatar_bunny.png',
+                    'fox_explorer': 'assets/images/avatars/avatar_fox.png',
+                    'monkey_pirate': 'assets/images/avatars/avatar_monkey.png',
+                    'otter_pirate': 'assets/images/avatars/avatar_otter.png'
+                };
+                if (avatarImages[savedAvatar]) {
+                    av.innerHTML = '<img src="' + avatarImages[savedAvatar] + '" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover; object-position:center 12%; display:block;">';
+                }
+            }
+        });
+    </script>
+    <script type="module" src="js/lobby.js?v=avatar3"></script>
+</body>
+</html>

@@ -151,15 +151,19 @@ export function generateMap(seed = null) {
     tiles.set(hexKey(q, r), tile);
   }
 
-  // 3. Đặt ô đảo nhỏ (Seafarers — chưa khám phá)
-  const smallPool   = buildTilePool(SMALL_ISLAND_TILES);
-  const smallNumbers = shuffle([3, 4, 5, 6, 8, 9, 10]);
+  // 3. Đặt ô đảo nhỏ (Seafarers — ngẫu nhiên 2 Mỏ Vàng phân bổ trong 7 ô đảo nhỏ)
+  const smallPool = seededShuffle([
+    TileType.GOLD, TileType.GOLD,
+    TileType.BRICK, TileType.LUMBER, TileType.GRAIN, TileType.WOOL, TileType.ORE
+  ], rand);
+  const smallNumbers = seededShuffle([3, 4, 5, 6, 8, 9, 10], rand);
+
   for (let i = 0; i < SMALL_ISLAND_COORDS.length; i++) {
     const { q, r } = SMALL_ISLAND_COORDS[i];
     const type = smallPool[i] ?? TileType.WOOL;
-    const num  = type !== TileType.DESERT ? (smallNumbers[i] ?? 5) : null;
+    const num  = type !== TileType.DESERT ? (smallNumbers[i] ?? 6) : null;
     const tile = new HexTile(q, r, type, num);
-    tile.isDiscovered = false; // chưa lật bài
+    tile.isDiscovered = false; // Bắt đầu ở trạng thái sương mù
     tiles.set(hexKey(q, r), tile);
   }
 

@@ -1346,6 +1346,30 @@
         </div>
     </div>
 
+    <!-- Gold Convert Modal (Đổi Thẻ Vàng sang tài nguyên khác 1:1) -->
+    <div class="dialog-overlay hidden" id="gold-pick-modal">
+        <div class="dialog-box" style="text-align:center; max-width:440px; width:94%;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <img src="assets/cards/card_gold.png" alt="Vàng" style="width:36px;height:36px;object-fit:contain;border-radius:6px; border:1px solid #fbbf24;">
+                    <h3 style="color:#fbbf24; margin:0; font-size:1.15rem;">⛏️ Đổi Thẻ Vàng (1 Vàng = 1 Thẻ)</h3>
+                </div>
+                <button class="btn btn-ghost btn-sm" onclick="document.getElementById('gold-pick-modal')?.classList.add('hidden')" style="padding:2px 8px; font-size:1.1rem;">✕</button>
+            </div>
+            <p id="gold-pick-info" style="font-size:0.88rem; color:#d1e4ff; margin:6px 0 12px; line-height:1.4;">
+                Mỗi 1 Thẻ Vàng có thể đổi thành 1 Thẻ tài nguyên bất kỳ lúc bạn cần!
+            </p>
+            <div id="gold-pick-controls" style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin:12px 0;">
+                <!-- Populated dynamically -->
+            </div>
+            <div style="font-weight:bold; color:#fbbf24; margin-bottom:12px;" id="gold-pick-status">Đã chọn đổi: 0 Vàng</div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-ghost" onclick="document.getElementById('gold-pick-modal')?.classList.add('hidden')" style="flex:1;">Để Dành Vàng</button>
+                <button class="btn btn-primary" id="btn-confirm-gold" style="flex:1; border-radius:0 !important;" disabled>✅ Xác Nhận Đổi</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Win Screen Modal with 3D Avatar Celebration -->
     <div class="dialog-overlay hidden" id="win-modal" style="z-index: 9999;">
         <div class="dialog-box" style="text-align:center; max-width: 520px; width: 92%; padding: 18px 20px; max-height: 94vh; overflow-y: auto; background: linear-gradient(160deg, #13345a 0%, #091729 100%); border: 2px solid #ffd700; box-shadow: 0 0 35px rgba(255, 215, 0, 0.4);">
@@ -2047,7 +2071,7 @@
     <!-- Floating Card Receive Banner -->
     <div id="card-receive-banner"></div>
 
-    <script type="module" src="js/game/main3d.js?v=bgm1"></script>
+    <script type="module" src="js/game/main3d.js?v=gold_card_v6"></script>
     <script>
     // ─── MOBILE GAME ENHANCEMENTS ─────────────────────────────────────────
     (function initMobileGame() {

@@ -933,6 +933,9 @@ function initGameWithPlayers(joinedPlayers, maxPlayers, useBots = false, customS
     window.dice3D = dice3D;
     window.myPlayerIndex = myPlayerIndex;
     window.performAction = performAction;
+    window.syncAll = syncAll;
+    window.checkWinCondition = checkWinCondition;
+    window.checkAndRevealDiscoveredTiles = checkAndRevealDiscoveredTiles;
 
     // Clear and build 3D Board
     pieces.clearAll();
@@ -1114,9 +1117,14 @@ function applyAction(action, shouldBroadcast = true, isReplaying = false) {
             break;
         }
         case 'buy_dev': {
-            const res = gameState.buyDevCard();
-            if (res.ok && !isReplaying) {
-                logEvent(`[Thẻ bài] ${cp.name} mua 1 Thẻ Phát Triển!`);
+            const res = gameState.buyDevCard(action.cardType);
+            if (res.ok) {
+                action.cardType = res.cardType;
+                if (!isReplaying) {
+                    const cardName = res.cardType === 'VP' ? 'Thẻ Điểm Chiến Thắng (+1 VP)' : 
+                                     (res.cardType === 'KNIGHT' ? 'Thẻ Hiệp Sĩ' : '1 Thẻ Phát Triển');
+                    logEvent(`[Thẻ bài] ${cp.name} mua ${cardName}!`);
+                }
             }
             break;
         }
@@ -1136,6 +1144,13 @@ function applyAction(action, shouldBroadcast = true, isReplaying = false) {
         case 'discard': {
             gameState.discardResources(action.playerId, action.toDiscard);
             if (!isReplaying) logEvent(`[Bỏ bài] ${gameState.players[action.playerId].name} bỏ bớt tài nguyên.`);
+            break;
+        }
+        case 'convert_gold': {
+            const res = gameState.convertGold(action.targetResource, action.amount || 1);
+            if (res.ok && !isReplaying) {
+                logEvent(`[Đổi Vàng] ${cp.name} đổi ${action.amount || 1} Vàng lấy ${action.targetResource}.`);
+            }
             break;
         }
         case 'gold_pick': {
@@ -1160,11 +1175,35 @@ function applyAction(action, shouldBroadcast = true, isReplaying = false) {
     }
 }
 
+
+// ─── ISLAND REVEAL ────────────────────────────────────────────────────────────
+// Quét toàn bộ bàn cờ và lật (reveal) bất kỳ ô đất nào vừa được khám phá
+// (chuyển từ fogMaterial sang địa hình thực và hiển thị token số).
+function checkAndRevealDiscoveredTiles() {
+    if (!hexBoard || !gameState) return;
+    let newlyRevealed = 0;
+    for (const tile of gameState.tiles.values()) {
+        if (tile.isDiscovered === true && tile.type !== 'SEA') {
+            const meshKey = `${tile.q},${tile.r}`;
+            const existing = hexBoard.tiles.get(meshKey);
+            if (existing && (!existing.userData || !existing.userData.revealed)) {
+                hexBoard.revealTile(tile.q, tile.r, tile);
+                newlyRevealed++;
+            }
+        }
+    }
+    if (newlyRevealed > 0) {
+        showTurnToast(`🏝️ Đã thám hiểm đảo mới! Sương mù đã tan biến.`, 3500);
+    }
+}
+
 // ─── SYNC ALL (HUD, HIGHLIGHTS, DISCARD MODAL, BOTS) ──────────────────────────
 function syncAll() {
+    checkAndRevealDiscoveredTiles();
     updateHUD();
     syncHighlights();
     handleDiscardPhase();
+    handleGoldPickPhase();
     checkWinCondition();
     triggerBotIfNeeded();
     updateTutorialCoachHUD();
@@ -1173,6 +1212,7 @@ function syncAll() {
 function updateHUD() {
     const cp = gameState.currentPlayer;
     const isMyTurn = (gameState.currentPlayerIndex === myPlayerIndex);
+    const myPlayer = gameState.players[myPlayerIndex] || gameState.players[0];
 
     // Top Bar Players (Shows EXACTLY maxPlayers with official Catan public rules)
     const playersEl = document.getElementById('players-container');
@@ -1183,10 +1223,13 @@ function updateHUD() {
             const colorHex = '#' + PLAYER_COLORS_3D[idx].toString(16).padStart(6, '0');
             const unplayedDev = (p.devCards || []).filter(c => !c.played).length;
             const avatarUrl = getPlayerAvatarUrl(p.avatar, idx);
-            const vpScore = isMe ? p.totalVP() : p.victoryPoints;
-            const hiddenVPText = (isMe && p.hiddenVP > 0) ? `+${p.hiddenVP}` : '';
+            const vpScore = p.totalVP();
 
             const badges = [];
+            const isPendingDiscard = gameState.phase === Phase.DISCARD && Array.isArray(gameState.discardPending) && gameState.discardPending.includes(p.id);
+            if (isPendingDiscard) {
+                badges.push('<span class="pod-badge-discard" style="background:#ef4444; color:#fff; font-size:0.62rem; font-weight:800; padding:1px 5px; border-radius:3px; animation:pulse 1s infinite;" title="Đang phải bỏ bớt bài!">⚠️ BỎ BÀI</span>');
+            }
             if (p.hasLongestRoad) badges.push('<span class="pod-badge-road" title="Đường Dài Nhất (2 VP)"><svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-4.66l.12-.34h13.77l.11.34V17z"/></svg></span>');
             if (p.hasLargestArmy) badges.push('<span class="pod-badge-army" title="Đại Quân (2 VP)"><svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M6.92 5h10.16L12 11.08 6.92 5zM2 3h20v2l-9 11v6h4v2H7v-2h4v-6L2 5V3z"/></svg></span>');
             const badgeStr = badges.length > 0 ? `<div class="pod-badges-wrap" style="display:inline-flex; gap:2px;">${badges.join('')}</div>` : '';
@@ -1198,7 +1241,7 @@ function updateHUD() {
                      style="--player-col:${colorHex};">
                     <div class="player-pod-avatar-wrap">
                         <img src="${avatarUrl}" alt="${escapeHtml(p.name)}" class="player-pod-avatar" />
-                        <span class="player-pod-vp" title="${vpScore} Điểm">${vpScore}${hiddenVPText ? `<small style="font-size:0.55rem;opacity:0.9;">(${hiddenVPText})</small>` : ''}</span>
+                        <span class="player-pod-vp" title="${vpScore} Điểm">${vpScore}</span>
                         ${isActive ? '<span class="player-turn-indicator" title="Đang trong lượt"></span>' : ''}
                     </div>
                     <div class="player-pod-info">
@@ -1251,10 +1294,18 @@ function updateHUD() {
                 phaseLabel.textContent = `SỐ 7: DI CHUYỂN TÊN CƯỚP HOẶC CƯỚP BIỂN`;
                 hintText.textContent = isMyTurn ? 'Nhấp vào ô đất để đặt Robber, hoặc nhấp vào ô biển để đặt Pirate' : `Đang chờ ${cp.name} di chuyển...`;
                 break;
-            case Phase.DISCARD:
+            case Phase.DISCARD: {
                 phaseLabel.textContent = `SỐ 7: BỎ BỚT TÀI NGUYÊN`;
-                hintText.textContent = 'Người chơi có trên 7 thẻ bài phải bỏ một nửa số thẻ.';
+                const pendingNames = (gameState.discardPending || []).map(id => gameState.players[id]?.name).filter(Boolean);
+                if (gameState.discardPending?.includes(myPlayer.id)) {
+                    hintText.textContent = `Bạn có trên 7 thẻ! Hãy chọn và bỏ một nửa số thẻ trong bảng hiển thị.`;
+                } else if (pendingNames.length > 0) {
+                    hintText.textContent = `Đang chờ [${pendingNames.join(', ')}] bỏ bớt thẻ bài do có trên 7 thẻ...`;
+                } else {
+                    hintText.textContent = 'Mọi người đã hoàn tất bỏ thẻ! Chuẩn bị di chuyển Tên Cướp.';
+                }
                 break;
+            }
             case Phase.STEAL:
                 phaseLabel.textContent = `CƯỚP TÀI NGUYÊN`;
                 hintText.textContent = isMyTurn ? `Đang cướp tài nguyên từ ${gameState.stealTargets?.map(id => gameState.players[id]?.name).join(', ') || 'đối thủ'}...` : `${cp.name} đang cướp tài nguyên...`;
@@ -1274,7 +1325,6 @@ function updateHUD() {
     }
 
     // Current Player's Resources
-    const myPlayer = gameState.players[myPlayerIndex] || gameState.players[0];
     if (myPlayer) {
         checkAndAnimateGains(myPlayer);
         setResValue('res-wood', myPlayer.resources['LUMBER'] || 0);
@@ -1539,7 +1589,7 @@ function renderDiscardControls(player) {
 
     if (infoEl) infoEl.textContent = `Bạn có ${player.totalResources()} thẻ (>7). Bạn phải bỏ bớt ${required} thẻ.`;
 
-    const selected = { LUMBER: 0, BRICK: 0, GRAIN: 0, WOOL: 0, ORE: 0 };
+    const selected = { LUMBER: 0, BRICK: 0, GRAIN: 0, WOOL: 0, ORE: 0, GOLD: 0 };
 
     const updateStatus = () => {
         const totalSelected = Object.values(selected).reduce((a, b) => a + b, 0);
@@ -1548,8 +1598,11 @@ function renderDiscardControls(player) {
     };
 
     if (controlsEl) {
-        const names = { LUMBER: 'Gỗ', BRICK: 'Gạch', GRAIN: 'Lúa', WOOL: 'Cừu', ORE: 'Quặng' };
-        controlsEl.innerHTML = ['LUMBER', 'BRICK', 'GRAIN', 'WOOL', 'ORE'].map(r => {
+        const names = { LUMBER: 'Gỗ 🪵', BRICK: 'Gạch 🧱', GRAIN: 'Lúa 🌾', WOOL: 'Cừu 🐑', ORE: 'Quặng ⛏️', GOLD: 'Vàng 🪙' };
+        const resList = ['LUMBER', 'BRICK', 'GRAIN', 'WOOL', 'ORE'];
+        if ((player.resources['GOLD'] || 0) > 0) resList.push('GOLD');
+
+        controlsEl.innerHTML = resList.map(r => {
             const count = player.resources[r] || 0;
             return `
                 <div style="background:rgba(0,0,0,0.4); border:1px solid var(--border); border-radius:6px; padding:6px 10px; min-width:65px;">
@@ -1563,11 +1616,10 @@ function renderDiscardControls(player) {
             `;
         }).join('');
 
-        ['LUMBER', 'BRICK', 'GRAIN', 'WOOL', 'ORE'].forEach(r => {
-            const count = player.resources[r] || 0;
+        resList.forEach(r => {
             document.getElementById(`add-${r}`)?.addEventListener('click', () => {
                 const cur = Object.values(selected).reduce((a, b) => a + b, 0);
-                if (cur < required && selected[r] < count) {
+                if (cur < required && selected[r] < (player.resources[r] || 0)) {
                     selected[r]++;
                     document.getElementById(`val-${r}`).textContent = selected[r];
                     updateStatus();
@@ -1599,7 +1651,8 @@ function renderDiscardControls(player) {
         autoBtn.onclick = () => {
             const toDiscard = {};
             let count = 0;
-            for (const r of ['LUMBER', 'BRICK', 'GRAIN', 'WOOL', 'ORE']) {
+            const resOrder = ['LUMBER', 'BRICK', 'GRAIN', 'WOOL', 'ORE', 'GOLD'];
+            for (const r of resOrder) {
                 const has = player.resources[r] || 0;
                 const take = Math.min(has, required - count);
                 if (take > 0) {
@@ -1611,6 +1664,87 @@ function renderDiscardControls(player) {
             performAction({ type: 'discard', playerId: player.id, toDiscard });
             discardModal.classList.add('hidden');
         };
+    }
+}
+
+// ─── GOLD CONVERT MODAL (Đổi Thẻ Vàng) ───────────────────────────────────────
+function handleGoldPickPhase() {
+    // Gold no longer triggers GOLD_PICK phase — modal is opened manually when player clicks gold card.
+    // This function is kept for syncAll() call compatibility but does nothing.
+}
+
+function openGoldConvertModal() {
+    const myPlayer = gameState.players[myPlayerIndex];
+    if (!myPlayer) return;
+    const goldHeld = myPlayer.resources['GOLD'] || 0;
+    if (goldHeld <= 0) return;
+    const goldModal = document.getElementById('gold-pick-modal');
+    if (!goldModal) return;
+    goldModal.classList.remove('hidden');
+    renderGoldPickControls(myPlayer, { amount: goldHeld });
+}
+
+function renderGoldPickControls(player, pending) {
+    const amount     = pending.amount; // số thẻ vàng đang giữ
+    const infoEl     = document.getElementById('gold-pick-info');
+    const controlsEl = document.getElementById('gold-pick-controls');
+    const statusEl   = document.getElementById('gold-pick-status');
+    const confirmBtn = document.getElementById('btn-confirm-gold');
+
+    if (infoEl) infoEl.textContent = `Bạn đang giữ ${amount} Thẻ Vàng. Chọn tài nguyên bạn muốn đổi (1 Vàng = 1 Thẻ)!`;
+
+    const RES_NAMES = { LUMBER: 'Gỗ 🪵', BRICK: 'Gạch 🧱', GRAIN: 'Lúa 🌾', WOOL: 'Cừu 🐑', ORE: 'Quặng ⛏️' };
+    const RES_LIST  = ['LUMBER', 'BRICK', 'GRAIN', 'WOOL', 'ORE'];
+    const selected  = { LUMBER: 0, BRICK: 0, GRAIN: 0, WOOL: 0, ORE: 0 };
+
+    const updateStatus = () => {
+        const total = Object.values(selected).reduce((a, b) => a + b, 0);
+        if (statusEl) statusEl.textContent = `Đã chọn đổi: ${total} / ${amount} Vàng`;
+        if (confirmBtn) confirmBtn.disabled = (total === 0 || total > amount);
+        RES_LIST.forEach(r => {
+            const valEl = document.getElementById(`gv-${r}`);
+            if (valEl) valEl.textContent = selected[r];
+        });
+    };
+
+    if (controlsEl) {
+        controlsEl.innerHTML = RES_LIST.map(r => `
+            <div style="background:rgba(0,0,0,0.4); border:1px solid #fbbf24; border-radius:8px; padding:8px 12px; min-width:70px; cursor:pointer;">
+                <div style="font-size:0.78rem; color:#fde68a;">${RES_NAMES[r]}</div>
+                <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:4px;">
+                    <button class="btn btn-ghost btn-sm" id="gsub-${r}" style="padding:1px 8px;">-</button>
+                    <span id="gv-${r}" style="font-weight:bold; color:#fbbf24; min-width:18px; text-align:center;">0</span>
+                    <button class="btn btn-ghost btn-sm" id="gadd-${r}" style="padding:1px 8px;">+</button>
+                </div>
+            </div>
+        `).join('');
+
+        RES_LIST.forEach(r => {
+            document.getElementById(`gadd-${r}`)?.addEventListener('click', () => {
+                const cur = Object.values(selected).reduce((a, b) => a + b, 0);
+                if (cur < amount) { selected[r]++; updateStatus(); }
+            });
+            document.getElementById(`gsub-${r}`)?.addEventListener('click', () => {
+                if (selected[r] > 0) { selected[r]--; updateStatus(); }
+            });
+        });
+    }
+
+    updateStatus();
+
+    if (confirmBtn) {
+        // Remove old listener by replacing
+        const newBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+        document.getElementById('btn-confirm-gold').addEventListener('click', () => {
+            const choices = Object.fromEntries(Object.entries(selected).filter(([, n]) => n > 0));
+            if (Object.keys(choices).length === 0) return;
+            // Send one convert_gold action per resource type chosen
+            for (const [targetResource, amt] of Object.entries(choices)) {
+                performAction({ type: 'convert_gold', targetResource, amount: amt });
+            }
+            document.getElementById('gold-pick-modal')?.classList.add('hidden');
+        });
     }
 }
 
@@ -2113,7 +2247,13 @@ function setupUIEvents() {
     document.querySelectorAll('.res-card').forEach(card => {
         card.addEventListener('click', () => {
             const res = card.getAttribute('data-res');
-            if (res && window.__inspectCard) {
+            if (!res) return;
+            // GOLD card → open convert modal (not generic inspect)
+            if (res === 'GOLD') {
+                openGoldConvertModal();
+                return;
+            }
+            if (window.__inspectCard) {
                 window.__inspectCard(res);
             }
         });
@@ -2639,7 +2779,7 @@ const DEV_CARD_METADATA = {
         icon: '',
         img: 'assets/cards/card_knight.png',
         theme: '#60a5fa',
-        desc: 'Khi chơi thẻ này, hãy di chuyển tên cướp và rút 1 thẻ tài nguyên từ một người chơi có công trình trên ô này. Tích lũy 3 Hiệp Sĩ để chiếm danh hiệu Đội Quân Lớn Nhất (+2 VP)!'
+        desc: 'Khi chơi thẻ này, hãy di chuyển tên cướp và rút 1 thẻ tài nguyên. Sở hữu từ 3 Hiệp Sĩ trở lên sẽ tự động kích hoạt danh hiệu Đội Quân Lớn Nhất (+2 VP)!'
     },
     'YEAR_OF_PLENTY': {
         name: 'Phát Minh',
@@ -2671,7 +2811,7 @@ const DEV_CARD_METADATA = {
         icon: '',
         img: 'assets/cards/card_victory_point.png',
         theme: '#fbbf24',
-        desc: 'Kỳ quan cổ xưa bí mật! Cộng trực tiếp +1 Điểm Chiến Thắng ẩn. Thẻ này luôn được giữ kín cho đến khi bạn đủ 10 điểm để tuyên bố thắng trận!'
+        desc: 'Thẻ Điểm Chiến Thắng cộng trực tiếp +1 Điểm Chiến Thắng (VP) vào tổng điểm của bạn và hiển thị cho tất cả người chơi. Giúp bạn nhanh chóng chạm mốc chiến thắng!'
     }
 };
 
@@ -2731,10 +2871,11 @@ window.__inspectDevCard = (cardType) => {
                 </div>
 
                 <div style="background:rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.1); padding:10px 12px; font-size:0.8rem; color:#aac4e0; line-height:1.45;">
-                    <div style="font-weight:700; color:var(--gold); margin-bottom:4px;">Quy Tắc Đánh Thẻ (Chuẩn Catan):</div>
+                    <div style="font-weight:700; color:var(--gold); margin-bottom:4px;">Quy Tắc Thẻ Bài:</div>
                     • Mỗi lượt chỉ được đánh tối đa 1 Thẻ Phát Triển.<br>
                     • Không thể đánh thẻ vừa mua trong cùng một lượt.<br>
-                    • Thẻ Điểm Chiến Thắng (VP) luôn được giữ bí mật và tự động tính điểm khi đủ điều kiện thắng.
+                    • Thẻ Điểm Chiến Thắng (VP) tự động cộng điểm ngay lập tức vào tổng điểm công khai của bạn.<br>
+                    • Tích lũy từ 3 Thẻ Hiệp Sĩ trở lên tự động nhận danh hiệu Đội Quân Lớn Nhất (+2 VP).
                 </div>
             </div>
         </div>
@@ -2743,9 +2884,12 @@ window.__inspectDevCard = (cardType) => {
     if (actionBtn) {
         if (cardType === 'VP') {
             actionBtn.style.display = 'inline-block';
-            actionBtn.textContent = '⭐ Điểm Thắng Tự Động Tính (+1 VP)';
-            actionBtn.disabled = true;
-            actionBtn.onclick = null;
+            actionBtn.textContent = '⭐ Thẻ Điểm Chiến Thắng (+1 VP Tự Động)';
+            actionBtn.disabled = false;
+            actionBtn.onclick = () => {
+                modal.classList.add('hidden');
+                showTurnToast('Thẻ Điểm Chiến Thắng đã được tự động cộng vào tổng điểm của bạn và hiển thị cho mọi người chơi!');
+            };
         } else if (canPlay) {
             actionBtn.style.display = 'inline-block';
             actionBtn.textContent = `✨ Đánh Thẻ ${info.name} Ngay`;
@@ -2788,7 +2932,9 @@ window.__showPlayerStats = (playerIdx) => {
     const longestRoadVP = p.hasLongestRoad ? 2 : 0;
     const largestArmyVP = p.hasLargestArmy ? 2 : 0;
     const islandVP = p.discoveredIslands ? p.discoveredIslands.size : 0;
-    const publicVP = p.victoryPoints;
+    const knightCount = Math.max((p.devCards || []).filter(c => c.type === 'KNIGHT').length, p.knightsPlayed || 0);
+    const devVP = (p.hiddenVP || (p.devCards || []).filter(c => c.type === 'VP').length);
+    const totalScore = p.totalVP();
 
     // Harbors controlled
     const harborsList = [];
@@ -2871,14 +3017,15 @@ window.__showPlayerStats = (playerIdx) => {
     bodyEl.innerHTML = `
         <div style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-weight:bold; color:var(--gold); font-size:1.05rem;">Điểm Chiến Thắng Công Khai:</span>
-                <span style="font-size:1.3rem; font-weight:bold; color:var(--gold);">${publicVP} VP ${isMe && p.hiddenVP > 0 ? `<span style="font-size:0.85rem; color:#85e3ff;">(+${p.hiddenVP} điểm ẩn)</span>` : ''}</span>
+                <span style="font-weight:bold; color:var(--gold); font-size:1.05rem;">Điểm Chiến Thắng Tổng Cộng:</span>
+                <span style="font-size:1.3rem; font-weight:bold; color:var(--gold);">${totalScore} VP</span>
             </div>
             <div style="font-size:0.8rem; color:#aac4e0; margin-top:8px; line-height:1.6;">
                 • Khu định cư trên bàn: <b>${p.placed.settlements.length}</b> (x1 VP = ${settlementVP} VP)<br>
                 • Thành phố trên bàn: <b>${p.placed.cities.length}</b> (x2 VP = ${cityVP} VP)<br>
                 • Danh hiệu Con Đường Dài Nhất: ${p.hasLongestRoad ? '<b style="color:var(--gold)">+2 VP [Đường Dài]</b>' : 'Không có'}<br>
-                • Danh hiệu Đội Quân Mạnh Nhất: ${p.hasLargestArmy ? '<b style="color:var(--gold)">+2 VP [Đại Quân]</b>' : 'Không có'}<br>
+                • Danh hiệu Đội Quân Mạnh Nhất: ${p.hasLargestArmy ? `<b style="color:var(--gold)">+2 VP [Đại Quân]</b> (${knightCount} Hiệp Sĩ)` : `Không có (${knightCount}/3 Hiệp Sĩ)`}<br>
+                • Thẻ Điểm Chiến Thắng (VP Cards): ${devVP > 0 ? `<b style="color:var(--gold)">+${devVP} VP</b>` : 'Không có'}<br>
                 • Khám phá đảo biển (Seafarers): +${islandVP} VP
             </div>
         </div>
@@ -2975,7 +3122,7 @@ function renderDevCardsModal() {
                 );
 
                 if (card.type === 'VP') {
-                    actionBtn = '<div style="color:var(--gold); font-size:0.85rem; font-weight:800; text-align:center; padding:6px; background:rgba(255,215,0,0.1); border:1px solid var(--gold);">Đang cộng +1 VP Ẩn</div>';
+                    actionBtn = '<div style="color:var(--gold); font-size:0.85rem; font-weight:800; text-align:center; padding:6px; background:rgba(255,215,0,0.15); border:1px solid var(--gold);">⭐ Đã tự động cộng +1 VP</div>';
                 } else if (isNew) {
                     actionBtn = '<div style="color:#85e3ff; font-size:0.78rem; text-align:center; padding:6px; background:rgba(0,0,0,0.35); border:1px dashed #85e3ff55;">Vừa mua (Dùng ở lượt sau)</div>';
                 } else if (gameState.devCardPlayedThisTurn) {
@@ -3171,7 +3318,7 @@ function triggerBotIfNeeded() {
             const need = Math.floor(playerToDiscard.totalResources() / 2);
             const toDiscard = {};
             let count = 0;
-            for (const r of ['LUMBER', 'BRICK', 'GRAIN', 'WOOL', 'ORE']) {
+            for (const r of ['LUMBER', 'BRICK', 'GRAIN', 'WOOL', 'ORE', 'GOLD']) {
                 const has = playerToDiscard.resources[r] || 0;
                 const take = Math.min(has, need - count);
                 if (take > 0) {
@@ -3185,15 +3332,17 @@ function triggerBotIfNeeded() {
         return;
     }
 
-    // 3. Auto-handle Gold Field pick
-    if (gameState.phase === Phase.GOLD_PICK && gameState.goldPending && gameState.goldPending.length > 0) {
-        const pending = gameState.goldPending[0];
-        const p = gameState.players[pending.playerId];
-        if (pending.playerId === myPlayerIndex || (p.isBot && myPlayerIndex === 0)) {
-            const resChoice = (p.resources['ORE'] < 2) ? 'ORE' : 'GRAIN';
-            performAction({ type: 'gold_pick', playerId: pending.playerId, choices: { [resChoice]: pending.amount } });
+    // 3. Auto-convert Gold cards for bots during BUILD phase
+    if (gameState.phase === Phase.BUILD && gameState.currentPlayer.isBot && myPlayerIndex === 0) {
+        const bot = gameState.currentPlayer;
+        const goldHeld = bot.resources['GOLD'] || 0;
+        if (goldHeld > 0) {
+            // Pick resource bot needs most (prioritize ORE → GRAIN → WOOL)
+            const need = ['ORE', 'GRAIN', 'WOOL', 'LUMBER', 'BRICK'];
+            const resChoice = need.find(r => (bot.resources[r] || 0) < 3) || 'GRAIN';
+            performAction({ type: 'convert_gold', targetResource: resChoice, amount: goldHeld });
+            return;
         }
-        return;
     }
 
     // 4. CRITICAL: NEVER execute bot actions for human players!

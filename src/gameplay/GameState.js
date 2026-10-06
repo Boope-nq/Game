@@ -358,15 +358,12 @@ export class GameState {
       if (!tile || !tile.producesResource) continue;
 
       if (tile.type === TileType.GOLD) {
-        this.goldPending.push({ playerId: player.id, amount: 1 });
+        player.resources.GOLD = (player.resources.GOLD ?? 0) + 1;
+        this.log(`${player.name} nhận 1 Vàng (GOLD) từ setup.`);
       } else {
-        player.resources[tile.resource]++;
+        player.resources[tile.resource] = (player.resources[tile.resource] ?? 0) + 1;
         this.log(`${player.name} nhận 1 ${tile.resource} từ setup.`);
       }
-    }
-
-    if (this.goldPending.length > 0) {
-      this.phase = Phase.GOLD_PICK;
     }
   }
 
@@ -469,8 +466,6 @@ export class GameState {
   // ─── TÀI NGUYÊN ───────────────────────────────────────────────────────────
 
   _distributeResources(number) {
-    const goldRecipients = [];
-
     for (const tile of this.tiles.values()) {
       if (tile.number !== number) continue;
       if (tile.hasRobber) continue;  // Robber chặn
@@ -483,8 +478,9 @@ export class GameState {
         const amount = vertex.building.type === 'city' ? 2 : 1;
 
         if (tile.type === TileType.GOLD) {
-          // Gold Field — chọn sau
-          goldRecipients.push({ playerId: player.id, amount });
+          // Nhận trực tiếp Thẻ Vàng (GOLD) vào tay để người chơi tự do đổi sau
+          player.resources.GOLD = (player.resources.GOLD ?? 0) + amount;
+          this.log(`[Mỏ Vàng] ${player.name} +${amount} Vàng (GOLD) từ Mỏ Vàng.`);
         } else {
           player.resources[tile.resource] = (player.resources[tile.resource] ?? 0) + amount;
           this.log(`${player.name} +${amount} ${tile.resource}`);
@@ -492,39 +488,43 @@ export class GameState {
       }
     }
 
-    if (goldRecipients.length > 0) {
-      this.goldPending = goldRecipients;
-      this.phase = Phase.GOLD_PICK;
-    } else {
-      this.phase = Phase.BUILD;
-    }
+    this.phase = Phase.BUILD;
   }
 
   /**
-   * Người chơi chọn tài nguyên từ Gold Field
-   * @param {number} playerId
-   * @param {Object} choices - { BRICK: 1, GRAIN: 1, ... } (tổng = amount)
+   * Đổi Thẻ Vàng (GOLD) sang tài nguyên cơ bản bất kỳ theo tỉ lệ 1:1
+   * Người chơi có thể tự do giữ Vàng trên tay và chủ động đổi lúc cần trong lượt.
+   * @param {string} targetResource - 'LUMBER' | 'BRICK' | 'GRAIN' | 'WOOL' | 'ORE'
+   * @param {number} amount - số lượng vàng muốn đổi (mặc định 1)
+   */
+  convertGold(targetResource, amount = 1) {
+    if (this.phase !== Phase.BUILD) return { ok: false, reason: 'Chỉ được đổi tài nguyên trong lượt xây dựng của bạn' };
+    const player = this.currentPlayer;
+    const validTargets = ['LUMBER', 'BRICK', 'GRAIN', 'WOOL', 'ORE'];
+    if (!validTargets.includes(targetResource)) return { ok: false, reason: `Tài nguyên đổi không hợp lệ: ${targetResource}` };
+    const numToConvert = Number(amount) || 1;
+    if (numToConvert <= 0) return { ok: false, reason: 'Số lượng vàng phải lớn hơn 0' };
+    if ((player.resources.GOLD ?? 0) < numToConvert) return { ok: false, reason: 'Không đủ Thẻ Vàng trong tay' };
+
+    player.resources.GOLD -= numToConvert;
+    player.resources[targetResource] = (player.resources[targetResource] ?? 0) + numToConvert;
+    this.log(`[Đổi Vàng] ${player.name} dùng ${numToConvert} Vàng đổi lấy ${numToConvert} ${targetResource}.`);
+    return { ok: true };
+  }
+
+  /**
+   * Tương thích ngược: chọn tài nguyên từ Gold Field
    */
   pickGoldResources(playerId, choices) {
-    const pending = this.goldPending.find(g => g.playerId === playerId);
-    if (!pending) return { ok: false, reason: 'Không có gold pending' };
-
-    const total = Object.values(choices).reduce((a, b) => a + b, 0);
-    if (total !== pending.amount) return { ok: false, reason: `Phải chọn đúng ${pending.amount} tài nguyên` };
-
     const player = this.players[playerId];
+    if (!player) return { ok: false, reason: 'Người chơi không tồn tại' };
+
     for (const [r, n] of Object.entries(choices)) {
-      if (!ALL_RESOURCES.includes(r)) return { ok: false, reason: `Tài nguyên không hợp lệ: ${r}` };
-      player.resources[r] = (player.resources[r] ?? 0) + n;
+      if (['LUMBER', 'BRICK', 'GRAIN', 'WOOL', 'ORE'].includes(r)) {
+        player.resources[r] = (player.resources[r] ?? 0) + n;
+      }
     }
-
-    this.goldPending = this.goldPending.filter(g => g.playerId !== playerId);
-    const summary = Object.entries(choices).map(([r, n]) => `${n}${r}`).join('+');
-    this.log(`[Ô Vàng] ${player.name} chọn ${summary} từ Ô Vàng.`);
-
-    if (this.goldPending.length === 0) {
-      this.phase = Phase.BUILD;
-    }
+    this.phase = Phase.BUILD;
     return { ok: true };
   }
 
@@ -715,6 +715,7 @@ export class GameState {
     this.edges.get(edgeKey).piece = { playerId: player.id, type: 'road', builtThisTurn: true };
 
     this._updateLongestRoute();
+    this._checkShipIslandReveal(edgeKey);
     this.log(`[Đường] ${player.name} xây Đường.`);
     this._checkWin();
     return { ok: true };
@@ -738,6 +739,7 @@ export class GameState {
     this.edges.get(edgeKey).piece = { playerId: player.id, type: 'ship', builtThisTurn: true };
 
     this._updateLongestRoute();
+    this._checkShipIslandReveal(edgeKey);
     this.log(`[Tàu] ${player.name} đặt Tàu.`);
     return { ok: true };
   }
@@ -785,25 +787,39 @@ export class GameState {
     this.movedShipThisTurn = true;
 
     this._updateLongestRoute();
+    this._checkShipIslandReveal(toEdgeKey);
     this.log(`[Tàu] ${player.name} di chuyển Tàu.`);
     return { ok: true };
   }
 
-  buyDevCard() {
+  buyDevCard(forcedCardType = null) {
     if (this.phase !== Phase.BUILD) return { ok: false, reason: 'Sai phase' };
     const player = this.currentPlayer;
 
     if (!player.canAfford(BUILD_COST.devCard)) return { ok: false, reason: 'Không đủ tài nguyên' };
-    if (this.devCardDeck.length === 0) return { ok: false, reason: 'Hết thẻ phát triển' };
+    if (this.devCardDeck.length === 0 && !forcedCardType) return { ok: false, reason: 'Hết thẻ phát triển' };
 
     player.pay(BUILD_COST.devCard);
-    const cardType = this.devCardDeck.pop();
+
+    let cardType = forcedCardType;
+    if (!cardType) {
+      cardType = this.devCardDeck.pop();
+    } else {
+      const idx = this.devCardDeck.lastIndexOf(cardType);
+      if (idx !== -1) this.devCardDeck.splice(idx, 1);
+      else if (this.devCardDeck.length > 0) this.devCardDeck.pop();
+    }
+
     player.devCards.push({ type: cardType, newThisTurn: true });
 
     if (cardType === 'VP') {
-      player.hiddenVP++;
-      this._checkWin();
+      player.hiddenVP = (player.devCards || []).filter(c => c.type === 'VP').length;
+      player.recalcPublicVP();
     }
+
+    this._updateLargestArmy();
+    player.recalcPublicVP();
+    this._checkWin();
 
     this.log(`[Thẻ Dev] ${player.name} mua Thẻ phát triển.`);
     return { ok: true, cardType };
@@ -827,6 +843,13 @@ export class GameState {
     player.playedDevCards.push(cardType);
 
     switch (cardType) {
+      case 'VP': {
+        player.recalcPublicVP();
+        this._checkWin();
+        this.log(`[Điểm chiến thắng] ${player.name} kích hoạt Thẻ Điểm Chiến Thắng (+1 VP)!`);
+        break;
+      }
+
       case 'KNIGHT':
         player.knightsPlayed++;
         this._updateLargestArmy();
@@ -995,6 +1018,46 @@ export class GameState {
     }
   }
 
+  _getIslandCoords(islandId) {
+    if (islandId === 'island_east') return [{ q: 4, r: -2 }, { q: 5, r: -2 }];
+    if (islandId === 'island_west') return [{ q: -4, r: 1 }, { q: -5, r: 2 }];
+    if (islandId === 'island_south') return [{ q: -1, r: 4 }, { q: 0, r: 4 }, { q: 1, r: 4 }];
+    return [];
+  }
+
+  _revealIsland(islandId) {
+    const coords = this._getIslandCoords(islandId);
+    let newlyRevealed = false;
+    for (const c of coords) {
+      const tile = this.getTile(c.q, c.r);
+      if (tile && !tile.isDiscovered) {
+        tile.isDiscovered = true;
+        newlyRevealed = true;
+      }
+    }
+    return newlyRevealed;
+  }
+
+  _checkShipIslandReveal(edgeKey) {
+    const edge = this.edges.get(edgeKey);
+    if (!edge) return;
+    for (const vKey of edge.vertices) {
+      const v = this.vertices.get(vKey);
+      if (!v) continue;
+      const islandId = this._getIslandId(v);
+      if (islandId && this._revealIsland(islandId)) {
+        this.log(`[Khám phá] Tuyến đường/tàu đã vươn tới đảo xa! Sương mù đã tan biến.`);
+      }
+    }
+    if (edge.hexes) {
+      for (const h of edge.hexes) {
+        if ((h.q === 4 && h.r === -2) || (h.q === 5 && h.r === -2)) this._revealIsland('island_east');
+        if ((h.q === -4 && h.r === 1) || (h.q === -5 && h.r === 2)) this._revealIsland('island_west');
+        if (h.r === 4 && (h.q === -1 || h.q === 0 || h.q === 1)) this._revealIsland('island_south');
+      }
+    }
+  }
+
   _checkIslandDiscovery(vertexKey, player) {
     const vertex = this.vertices.get(vertexKey);
     if (!vertex) return;
@@ -1009,33 +1072,26 @@ export class GameState {
     const islandId = this._getIslandId(vertex);
     if (!islandId) return;
 
-    // Kiểm tra đây có phải player đầu tiên không
-    const alreadyClaimed = [...this.vertices.values()].some(v =>
-      v.building && v.building.playerId !== player.id &&
-      this._getIslandId(v) === islandId
-    );
+    // Lật toàn bộ các ô của hòn đảo này
+    this._revealIsland(islandId);
 
-    if (!alreadyClaimed && !player.discoveredIslands.has(islandId)) {
+    // Luật Catan Seafarers: Mỗi người chơi xây định cư đầu tiên trên một đảo xa
+    // đều được thưởng điểm chiến thắng khám phá (Special Victory Point)
+    if (!player.discoveredIslands.has(islandId)) {
       player.discoveredIslands.add(islandId);
       player.recalcPublicVP();
-      this.log(`[Đảo mới] ${player.name} khám phá đảo mới! +1 VP (tổng VP: ${player.totalVP()})`);
-
-      // Reveal đảo
-      for (const hex of vertex.hexes) {
-        const tile = this.getTile(hex.q, hex.r);
-        if (tile) tile.isDiscovered = true;
-      }
+      this.log(`[Đảo mới] ${player.name} lập định cư trên đảo mới! +1 VP (tổng VP: ${player.totalVP()})`);
+      this._checkWin();
     }
   }
 
   _getIslandId(vertex) {
-    // Phân loại đảo dựa trên vùng toạ độ
-    const avgQ = vertex.hexes.reduce((s, h) => s + h.q, 0) / 3;
-    const avgR = vertex.hexes.reduce((s, h) => s + h.r, 0) / 3;
-
-    if (avgQ > 3) return 'island_east';
-    if (avgQ < -3) return 'island_west';
-    if (avgR > 3) return 'island_south';
+    if (!vertex.hexes || vertex.hexes.length === 0) return null;
+    for (const h of vertex.hexes) {
+      if ((h.q === 4 && h.r === -2) || (h.q === 5 && h.r === -2)) return 'island_east';
+      if ((h.q === -4 && h.r === 1) || (h.q === -5 && h.r === 2)) return 'island_west';
+      if (h.r === 4 && (h.q === -1 || h.q === 0 || h.q === 1)) return 'island_south';
+    }
     return null;
   }
 
@@ -1071,17 +1127,64 @@ export class GameState {
   }
 
   _updateLargestArmy() {
-    const player = this.currentPlayer;
-    if (player.knightsPlayed > this.largestArmySize) {
+    // Đếm tổng số hiệp sĩ của từng người chơi (cả trên tay lẫn đã đánh)
+    for (const player of this.players) {
+      const knightCardsCount = (player.devCards || []).filter(c => c.type === 'KNIGHT').length;
+      const playedCount = player.knightsPlayed || 0;
+      player.totalKnights = Math.max(knightCardsCount, playedCount);
+    }
+
+    let maxKnights = Math.max(this.largestArmySize || 2, 2);
+    let newOwner = this.largestArmyOwner;
+
+    // Nếu người đang giữ danh hiệu không còn đủ tối thiểu 3 hiệp sĩ
+    if (this.largestArmyOwner) {
+      const currentOwnerCount = this.largestArmyOwner.totalKnights || 0;
+      if (currentOwnerCount < 3) {
+        this.largestArmyOwner.hasLargestArmy = false;
+        this.largestArmyOwner.recalcPublicVP();
+        this.largestArmyOwner = null;
+        this.largestArmySize = 2;
+        maxKnights = 2;
+        newOwner = null;
+      } else {
+        maxKnights = currentOwnerCount;
+        this.largestArmySize = currentOwnerCount;
+      }
+    }
+
+    // Duyệt tìm người chơi sở hữu từ 3 Hiệp Sĩ trở lên
+    for (const player of this.players) {
+      const count = player.totalKnights || 0;
+      if (count >= 3) {
+        if (!newOwner) {
+          // Chưa có ai giữ danh hiệu, người đầu tiên đạt >= 3 sẽ nhận ngay danh hiệu
+          newOwner = player;
+          maxKnights = count;
+        } else if (newOwner && player.id !== newOwner.id && count > maxKnights) {
+          // Người chơi mới phải có số lượng hiệp sĩ nhiều hơn người giữ cũ
+          newOwner = player;
+          maxKnights = count;
+        }
+      }
+    }
+
+    if (newOwner && newOwner !== this.largestArmyOwner) {
       if (this.largestArmyOwner) {
         this.largestArmyOwner.hasLargestArmy = false;
         this.largestArmyOwner.recalcPublicVP();
       }
-      player.hasLargestArmy  = true;
-      this.largestArmyOwner  = player;
-      this.largestArmySize   = player.knightsPlayed;
-      player.recalcPublicVP();
-      this.log(`[Đạo quân] ${player.name} có Quân Đội Lớn Nhất (${player.knightsPlayed} Knight)! +2 VP`);
+      newOwner.hasLargestArmy = true;
+      this.largestArmyOwner  = newOwner;
+      this.largestArmySize   = maxKnights;
+      newOwner.recalcPublicVP();
+      this.log(`[Đạo quân] ${newOwner.name} đạt Quân Đội Lớn Nhất (${maxKnights} Hiệp Sĩ)! +2 VP`);
+    } else if (newOwner && newOwner === this.largestArmyOwner) {
+      if (!newOwner.hasLargestArmy) {
+        newOwner.hasLargestArmy = true;
+        newOwner.recalcPublicVP();
+      }
+      this.largestArmySize = Math.max(this.largestArmySize || 2, newOwner.totalKnights || 0);
     }
   }
 
@@ -1091,7 +1194,10 @@ export class GameState {
   }
 
   _checkWin() {
+    this._updateLargestArmy();
+    this._updateLongestRoute();
     for (const player of this.players) {
+      player.recalcPublicVP();
       if (player.totalVP() >= this.winningVP) {
         this.winner = player;
         this.phase  = Phase.GAME_OVER;

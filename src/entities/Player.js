@@ -12,9 +12,11 @@ export const ResourceType = Object.freeze({
   GRAIN:  'GRAIN',
   WOOL:   'WOOL',
   ORE:    'ORE',
+  GOLD:   'GOLD',
 });
 
 export const ALL_RESOURCES = Object.values(ResourceType);
+export const ALL_BASIC_RESOURCES = ['BRICK', 'LUMBER', 'GRAIN', 'WOOL', 'ORE'];
 
 export class Player {
   /**
@@ -27,13 +29,14 @@ export class Player {
     this.color      = PlayerColor[id];
     this.colorHex   = PlayerColorHex[id];
 
-    // Tài nguyên trong tay
+    // Tài nguyên trong tay (bao gồm 5 loại cơ bản + Thẻ Vàng)
     this.resources = {
       [ResourceType.BRICK]:  0,
       [ResourceType.LUMBER]: 0,
       [ResourceType.GRAIN]:  0,
       [ResourceType.WOOL]:   0,
       [ResourceType.ORE]:    0,
+      [ResourceType.GOLD]:   0,
     };
 
     // Công trình còn trong kho (chưa đặt lên bàn)
@@ -113,12 +116,18 @@ export class Player {
     if (this.hasLongestRoad)  vp += 2;
     if (this.hasLargestArmy)  vp += 2;
     vp += this.discoveredIslands.size;  // +1 mỗi đảo khám phá (Seafarers)
+
+    // Tự động cộng thẻ điểm chiến thắng (VP cards) vào điểm số của người chơi
+    const vpCards = (this.devCards || []).filter(c => c.type === 'VP').length;
+    this.hiddenVP = Math.max(this.hiddenVP || 0, vpCards);
+    vp += this.hiddenVP;
+
     this.victoryPoints = vp;
     return vp;
   }
 
   totalVP() {
-    return this.recalcPublicVP() + this.hiddenVP;
+    return this.recalcPublicVP();
   }
 
   toJSON() {

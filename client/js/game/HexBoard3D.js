@@ -750,7 +750,7 @@ export class HexBoard3D {
                 mesh.rotation.x = Math.PI / 2;
                 mesh.position.set(pos.x, isSea ? -0.05 : 0, pos.z);
                 mesh.receiveShadow = true; mesh.castShadow = !isSea;
-                mesh.userData = { q: tile.q, r: tile.r, type: 'tile', tileData: tile };
+                mesh.userData = { q: tile.q, r: tile.r, type: 'tile', tileData: tile, revealed: (tile.isDiscovered !== false) };
                 this.boardGroup.add(mesh);
                 this.tiles.set(`${tile.q},${tile.r}`, mesh);
 
@@ -777,6 +777,42 @@ export class HexBoard3D {
 
         } catch (err) {
             console.error('[HexBoard3D] buildBoardFromGameState error:', err);
+        }
+    }
+
+    /**
+     * Lật một ô đảo từ sương mù (fog) → hiển thị thực tế (reveal).
+     * Gọi sau khi tile.isDiscovered đã được set true bởi GameState.
+     * @param {number} q
+     * @param {number} r
+     * @param {object} tile - HexTile object từ gameState.tiles
+     */
+    revealTile(q, r, tile) {
+        const key  = `${q},${r}`;
+        const mesh = this.tiles.get(key);
+        if (!mesh) return;
+
+        mesh.userData.revealed = true;
+        mesh.userData.tileData = tile;
+
+        // Swap material từ fog → vật liệu thực
+        mesh.material = this.materials[tile.type] || this.materials['SEA'];
+        if (mesh.material) mesh.material.needsUpdate = true;
+        mesh.castShadow = (tile.type !== 'SEA');
+        mesh.receiveShadow = true;
+
+        // Thêm trang trí địa hình
+        const pos      = this.hexToWorld(q, r);
+        const surfaceY = this._getSurfaceY(mesh);
+        this._decorateHex(this.boardGroup, tile, pos, surfaceY);
+
+        // Thêm số token nếu có
+        if (tile.number && tile.type !== 'DESERT') {
+            const token = this.createNumberToken(tile.number);
+            if (token) {
+                token.position.set(pos.x, surfaceY + 0.06, pos.z);
+                this.boardGroup.add(token);
+            }
         }
     }
 

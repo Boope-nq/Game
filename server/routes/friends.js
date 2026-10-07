@@ -77,6 +77,10 @@ router.delete('/:userId', (req, res) => {
     const targetId = parseInt(req.params.userId, 10);
     const ok = db.friendships.remove(req.userId, targetId);
     if (ok) {
+        if (req.io) {
+            req.io.to(`user_${targetId}`).emit('friend:update');
+            req.io.to(`user_${req.userId}`).emit('friend:update');
+        }
         res.json({ success: true, message: 'Đã xoá bạn' });
     } else {
         res.status(400).json({ error: 'Không tìm thấy quan hệ bạn bè' });

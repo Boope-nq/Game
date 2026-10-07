@@ -409,6 +409,80 @@
             background: linear-gradient(165deg, rgba(153, 110, 0, 0.95), rgba(82, 58, 0, 0.98));
             border-color: #fbbf24aa;
         }
+        /* C&K Commodities */
+        .res-card[data-res="PAPER"] {
+            --card-glow: rgba(52, 211, 153, 0.7);
+            background: linear-gradient(165deg, rgba(6, 78, 59, 0.95), rgba(4, 47, 46, 0.98));
+            border-color: #34d399aa;
+        }
+        .res-card[data-res="CLOTH"] {
+            --card-glow: rgba(251, 191, 36, 0.7);
+            background: linear-gradient(165deg, rgba(146, 64, 14, 0.95), rgba(90, 40, 10, 0.98));
+            border-color: #fbbf24aa;
+        }
+        .res-card[data-res="COIN"] {
+            --card-glow: rgba(96, 165, 250, 0.7);
+            background: linear-gradient(165deg, rgba(30, 58, 138, 0.95), rgba(15, 23, 42, 0.98));
+            border-color: #60a5faaa;
+        }
+
+        /* Barbarian Fleet Tracker */
+        .barbarian-hud {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            z-index: 25;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, rgba(20, 20, 32, 0.95), rgba(50, 15, 22, 0.98));
+            border: 1.5px solid rgba(239, 68, 68, 0.7);
+            border-radius: 4px;
+            padding: 6px 14px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.6), 0 0 14px rgba(239, 68, 68, 0.35);
+            backdrop-filter: blur(8px);
+            user-select: none;
+            transition: all 0.3s ease;
+        }
+        .barbarian-steps {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .barbarian-step-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            transition: all 0.25s ease;
+        }
+        .barbarian-step-dot.passed {
+            background: rgba(239, 68, 68, 0.45);
+            border-color: #ef4444;
+        }
+        .barbarian-step-dot.ship-pos {
+            background: #ffd700;
+            border-color: #ffffff;
+            box-shadow: 0 0 10px #ffd700, 0 0 4px #ff4444;
+            transform: scale(1.4);
+        }
+
+        /* C&K Track Card */
+        .ck-track-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .ck-track-science { border-color: rgba(52, 211, 153, 0.5); }
+        .ck-track-trade { border-color: rgba(251, 191, 36, 0.5); }
+        .ck-track-politics { border-color: rgba(96, 165, 250, 0.5); }
+
 
         .res-card-name {
             font-size: 0.78rem;
@@ -607,7 +681,7 @@
         /* Dice Area */
         .dice-area {
             position: absolute;
-            bottom: 180px;
+            bottom: 225px;
             right: 20px;
             text-align: right;
             display: flex;
@@ -1035,6 +1109,24 @@
             </div>
         </div>
 
+        <!-- Barbarian Fleet Tracker (Cities & Knights) -->
+        <div id="barbarian-hud" class="barbarian-hud hidden hud-interactive">
+            <div class="barbarian-header" style="display:flex; align-items:center; gap:6px; font-weight:800; font-size:0.82rem; color:#fca5a5;">
+                <span style="font-size:1.1rem;">🏴‍☠️</span>
+                <span class="barbarian-title">THUYỀN MAN RỢ:</span>
+                <span id="barbarian-pos-text" style="color:#ffd700; font-size:0.95rem;">0/7</span>
+            </div>
+            <div class="barbarian-steps" id="barbarian-steps">
+                <!-- 7 step dots rendered dynamically -->
+            </div>
+            <div class="barbarian-sep" style="height:14px; width:1px; background:rgba(255,255,255,0.25);"></div>
+            <div id="barbarian-defense-status" style="font-size:0.75rem; color:#cbd5e1; display:flex; align-items:center; gap:5px;">
+                <span>🛡️ <span class="defense-label">Hiệp Sĩ:</span> <b id="barbarian-knights-strength" style="color:#60a5fa;">0</b></span>
+                <span>/</span>
+                <span>🏛️ <span class="defense-label">Thành Phố:</span> <b id="barbarian-cities-count" style="color:#fbbf24;">0</b></span>
+            </div>
+        </div>
+
         <!-- Center Phase & Instruction -->
         <div class="phase-indicator">
             <div id="phase-label">KHỞI ĐỘNG TRẬN ĐẤU</div>
@@ -1152,39 +1244,90 @@
                     <div class="res-val" id="res-gold">0</div>
                     <div class="res-card-hint">Chạm xem</div>
                 </div>
+
+                <!-- Cities & Knights Commodities -->
+                <div class="res-card ck-only hidden" data-res="PAPER" title="Giấy (Paper) - Hàng hóa từ Rừng & Thành phố (Nhánh Khoa Học)">
+                    <div class="res-card-name">
+                        <span style="font-size:1.15rem; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5));">📜</span>
+                        <span>Giấy</span>
+                    </div>
+                    <div class="res-val" id="res-paper">0</div>
+                    <div class="res-card-hint">Khoa Học</div>
+                </div>
+                <div class="res-card ck-only hidden" data-res="CLOTH" title="Vải (Cloth) - Hàng hóa từ Đồng cỏ & Thành phố (Nhánh Thương Mại)">
+                    <div class="res-card-name">
+                        <span style="font-size:1.15rem; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5));">🧶</span>
+                        <span>Vải</span>
+                    </div>
+                    <div class="res-val" id="res-cloth">0</div>
+                    <div class="res-card-hint">Thương Mại</div>
+                </div>
+                <div class="res-card ck-only hidden" data-res="COIN" title="Đồng Xu (Coin) - Hàng hóa từ Núi & Thành phố (Nhánh Chính Trị)">
+                    <div class="res-card-name">
+                        <span style="font-size:1.15rem; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5));">🪙</span>
+                        <span>Xu</span>
+                    </div>
+                    <div class="res-val" id="res-coin">0</div>
+                    <div class="res-card-hint">Chính Trị</div>
+                </div>
             </div>
 
             <div class="actions">
                 <div class="actions-row">
                     <button class="btn btn-ghost" id="btn-trade">
                         <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M4 10h3v7H4zm6.5 0h3v7h-3zM2 19h20v3H2zm15-9h3v7h-3zm-5-9L2 6v2h20V6z"/></svg>
-                        Đổi Cảng / Ngân Hàng
+                        <span class="desktop-only-inline">Đổi Cảng / Ngân Hàng</span>
+                        <span class="mobile-only-inline">Đổi Cảng</span>
                     </button>
-                    <button class="btn btn-ghost" id="btn-dev-buy">
+                    <button class="btn btn-ghost base-only" id="btn-dev-buy">
                         <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
                         Mua Thẻ PT
                     </button>
-                    <button class="btn btn-ghost" id="btn-dev-view">
+                    <button class="btn btn-ghost base-only" id="btn-dev-view">
                         <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm0-8c-.83 0-1.5-.67-1.5-1.5S11.17 6 12 6s1.5.67 1.5 1.5S12.83 9 12 9z"/></svg>
                         Thẻ Của Bạn (0)
+                    </button>
+                    <!-- C&K Action Buttons in Row 1 -->
+                    <button class="btn btn-ghost ck-only hidden" id="btn-ck-improve" style="border-color:#38bdf8; color:#38bdf8;" title="Nâng Cấp Đô Thị: Khoa học (Giấy), Thương mại (Vải), Chính trị (Đồng xu)">
+                        <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2L2 7l10 5 10-5-10-5zm0 18l-8-4v-6l8 4 8-4v6l-8 4z"/></svg>
+                        Đô Thị
+                    </button>
+                    <button class="btn btn-ghost ck-only hidden" id="btn-ck-progress" style="border-color:#fbbf24; color:#fbbf24;" title="Xem & Dùng Thẻ Tiến Bộ C&K trên tay">
+                        <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm0-8c-.83 0-1.5-.67-1.5-1.5S11.17 6 12 6s1.5.67 1.5 1.5S12.83 9 12 9z"/></svg>
+                        Thẻ Tiến Bộ (0)
                     </button>
                 </div>
                 <div class="actions-row">
                     <button class="btn btn-primary" id="btn-road" title="Chi phí: 1 Gạch, 1 Gỗ">
                         <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M18.1 4H5.9L3.5 20h17l-2.4-16zM11 16H9v-3h2v3zm0-5H9V8h2v3zm4 5h-2v-3h2v3zm0-5h-2V8h2v3z"/></svg>
-                        Xây Đường
+                        <span class="desktop-only-inline">Xây Đường</span>
+                        <span class="mobile-only-inline">Đường</span>
                     </button>
                     <button class="btn btn-primary" id="btn-ship" title="Chi phí: 1 Gỗ, 1 Cừu">
                         <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M20 21c-1.39 0-2.78-.47-4-1.32-2.44 1.71-5.56 1.71-8 0C6.78 20.53 5.39 21 4 21H2v2h2c1.38 0 2.74-.35 4-.99 2.52 1.29 5.48 1.29 8 0 1.26.65 2.62.99 4 .99h2v-2h-2zM3.95 19H4c1.6 0 3.02-.88 4-2 .98 1.12 2.4 2 4 2s3.02-.88 4-2c.98 1.12 2.4 2 4 2h.05l1.89-6.68c.08-.26.06-.54-.06-.78s-.33-.41-.6-.46L19 13.01V5.5c0-.83-.67-1.5-1.5-1.5H16V2h-2v2h-4V2H8v2H6.5C5.67 4 5 4.67 5 5.5v7.51l-2.28.07c-.27.05-.48.22-.6.46s-.14.52-.06.78L3.95 19z"/></svg>
-                        Đóng Tàu
+                        <span class="desktop-only-inline">Đóng Tàu</span>
+                        <span class="mobile-only-inline">Tàu</span>
                     </button>
                     <button class="btn btn-primary" id="btn-settlement" title="Chi phí: 1 Gạch, 1 Gỗ, 1 Lúa, 1 Cừu">
                         <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-                        Xây Định Cư
+                        <span class="desktop-only-inline">Xây Định Cư</span>
+                        <span class="mobile-only-inline">Định Cư</span>
                     </button>
                     <button class="btn btn-primary" id="btn-city" title="Chi phí: 2 Lúa, 3 Quặng">
                         <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M15 11V5l-3-3-3 3v2H3v14h18V11h-6zm-8 7H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V8h2v2zm6 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V8h2v2zm0-4h-2V4h2v2zm6 12h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>
-                        Lên Thành Phố
+                        <span class="desktop-only-inline">Lên Thành Phố</span>
+                        <span class="mobile-only-inline">Thành Phố</span>
+                    </button>
+                    <!-- C&K Action Buttons in Row 2 -->
+                    <button class="btn btn-primary ck-only hidden" id="btn-ck-wall" style="background:linear-gradient(135deg, #9a3412, #7c2d12); border-color:#f97316;" title="Chi phí: 2 Gạch - Xây tường thành (+2 giới hạn bài an toàn)">
+                        <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19 4H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-9 2h4v3h-4V6zm-5 0h4v3H5V6zm0 5h6v3H5v-3zm8 0h6v3h-6v-3zm-8 5h4v3H5v-3zm6 0h4v3h-4v-3zm6 0h2v3h-2v-3zm0-5h2v3h-2v-3zm0-5h2v3h-2V6z"/></svg>
+                        <span class="desktop-only-inline">Tường Thành</span>
+                        <span class="mobile-only-inline">Tường</span>
+                    </button>
+                    <button class="btn btn-primary ck-only hidden" id="btn-ck-knight" style="background:linear-gradient(135deg, #1e40af, #1e3a8a); border-color:#60a5fa;" title="Chiêu Mộ, Kích Hoạt, Thăng Cấp & Điều Động Hiệp Sĩ">
+                        <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l-5.5 9h11L12 2zm0 3.84L13.93 9h-3.86L12 5.84zM12 13c-3.31 0-6 2.69-6 6h12c0-3.31-2.69-6-6-6z"/></svg>
+                        <span class="desktop-only-inline">Hiệp Sĩ</span>
+                        <span class="mobile-only-inline">Hiệp Sĩ</span>
                     </button>
                 </div>
                 <button class="btn btn-danger" id="btn-end-turn" style="margin-top: 4px; padding: 10px; font-weight:bold; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
@@ -1522,6 +1665,57 @@
         </div>
     </div>
 
+    <!-- C&K City Improvements Modal -->
+    <div class="dialog-overlay hidden" id="ck-improve-modal" style="z-index: 10001; backdrop-filter: blur(8px);">
+        <div class="dialog-box" style="max-width: 640px; width: 94%; max-height: 90vh; overflow-y: auto; padding: 22px; border: 2px solid #38bdf8; box-shadow: 0 16px 50px rgba(0,0,0,0.85), 0 0 30px rgba(56,189,248,0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(56,189,248,0.3); padding-bottom:10px; margin-bottom:16px;">
+                <h3 style="color:#38bdf8; margin:0; display:flex; align-items:center; gap:8px; font-size:1.25rem;">
+                    <span>🏛️ Nâng Cấp Đô Thị (City Improvements)</span>
+                </h3>
+                <button class="btn btn-ghost btn-sm" id="btn-close-ck-improve-x" style="padding:2px 8px;">✕</button>
+            </div>
+            <p style="font-size:0.85rem; color:#cbd5e1; margin-top:0; margin-bottom:14px; line-height:1.4;">
+                Nâng cấp các nhánh đô thị để rút Thẻ Tiến Bộ khi xúc xắc sự kiện đổ ra màu tương ứng. Cấp 3 mở khóa đặc quyền tối thượng, Cấp 4 nhận Đại Đô Thị (+2 VP)!
+            </p>
+            <div id="ck-improve-tracks-container" style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
+                <!-- Populated dynamically via main3d.js -->
+            </div>
+            <button class="btn btn-primary" id="btn-close-ck-improve" style="width:100%; padding:10px; font-weight:bold;">Đóng</button>
+        </div>
+    </div>
+
+    <!-- C&K Knight Actions Modal -->
+    <div class="dialog-overlay hidden" id="ck-knight-modal" style="z-index: 10001; backdrop-filter: blur(8px);">
+        <div class="dialog-box" style="max-width: 620px; width: 94%; max-height: 90vh; overflow-y: auto; padding: 22px; border: 2px solid #60a5fa; box-shadow: 0 16px 50px rgba(0,0,0,0.85), 0 0 30px rgba(96,165,250,0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(96,165,250,0.3); padding-bottom:10px; margin-bottom:16px;">
+                <h3 style="color:#60a5fa; margin:0; display:flex; align-items:center; gap:8px; font-size:1.25rem;">
+                    <span>⚔️ Hành Động Hiệp Sĩ (Knights)</span>
+                </h3>
+                <button class="btn btn-ghost btn-sm" id="btn-close-ck-knight-x" style="padding:2px 8px;">✕</button>
+            </div>
+            <div id="ck-knight-actions-container" style="display:flex; flex-direction:column; gap:12px; margin-bottom:16px;">
+                <!-- Populated dynamically via main3d.js -->
+            </div>
+            <button class="btn btn-primary" id="btn-close-ck-knight" style="width:100%; padding:10px; font-weight:bold;">Đóng</button>
+        </div>
+    </div>
+
+    <!-- C&K Progress Cards Hand Modal -->
+    <div class="dialog-overlay hidden" id="ck-progress-modal" style="z-index: 10001; backdrop-filter: blur(8px);">
+        <div class="dialog-box" style="max-width: 680px; width: 94%; max-height: 90vh; overflow-y: auto; padding: 22px; border: 2px solid #fbbf24; box-shadow: 0 16px 50px rgba(0,0,0,0.85), 0 0 30px rgba(251,191,36,0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(251,191,36,0.3); padding-bottom:10px; margin-bottom:14px;">
+                <h3 style="color:#fbbf24; margin:0; display:flex; align-items:center; gap:8px; font-size:1.25rem;">
+                    <span>📜 Thẻ Tiến Bộ C&K Của Bạn</span>
+                </h3>
+                <button class="btn btn-ghost btn-sm" id="btn-close-ck-progress-x" style="padding:2px 8px;">✕</button>
+            </div>
+            <div id="ck-progress-cards-list" style="margin-bottom:16px;">
+                <!-- Populated dynamically via main3d.js -->
+            </div>
+            <button class="btn btn-primary" id="btn-close-ck-progress" style="width:100%; padding:10px; font-weight:bold;">Đóng</button>
+        </div>
+    </div>
+
     <!-- Official Player Info & Public Stats Modal -->
     <div class="dialog-overlay hidden" id="player-info-modal">
         <div class="dialog-box" style="max-width:540px; width:92%;">
@@ -1604,8 +1798,8 @@
                 <div class="rules-title-box">
                     <svg class="mono-icon" style="width:32px;height:32px;color:var(--gold);" viewBox="0 0 24 24"><path fill="currentColor" d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
                     <div>
-                        <h2 class="rules-title">TOÀN BỘ LUẬT CHƠI CATAN & SEAFARERS</h2>
-                        <div class="rules-subtitle">Cẩm nang hướng dẫn chi tiết từ A đến Z - Quy chuẩn quốc tế kèm ví dụ thực tế</div>
+                        <h2 class="rules-title"><span class="desktop-only-inline">TOÀN BỘ LUẬT CHƠI CATAN: CƠ BẢN, SEAFARERS & CITIES & KNIGHTS</span><span class="mobile-only-inline">LUẬT CHƠI CATAN TOÀN TẬP</span></h2>
+                        <div class="rules-subtitle">Cẩm nang hướng dẫn chi tiết từ A đến Z - Quy chuẩn quốc tế 5th Edition kèm ví dụ trực quan</div>
                     </div>
                 </div>
                 <button class="rules-close-btn" id="close-rules-btn" title="Đóng hướng dẫn">✕</button>
@@ -1622,6 +1816,10 @@
                 <button class="rules-nav-btn" data-target="sec-trade">7. Giao Dịch & Cảng</button>
                 <button class="rules-nav-btn" data-target="sec-devcards">8. Thẻ Phát Triển</button>
                 <button class="rules-nav-btn" data-target="sec-tips">9. Mẹo & Chiến Thuật</button>
+                <button class="rules-nav-btn" data-target="sec-ck-overview">10. C&K: Tổng Quan</button>
+                <button class="rules-nav-btn" data-target="sec-ck-commodities">11. C&K: Hàng Hóa & Đô Thị</button>
+                <button class="rules-nav-btn" data-target="sec-ck-knights-barbarians">12. C&K: Hiệp Sĩ & Man Rợ</button>
+                <button class="rules-nav-btn" data-target="sec-ck-progress-cards">13. C&K: 54 Thẻ Tiến Bộ</button>
             </div>
 
             <!-- Scrollable Content Body -->
@@ -1639,7 +1837,8 @@
                         <div style="margin-top: 6px; font-weight: 500;">
                             • Bản đồ Cơ bản: <strong>10 Điểm (10 VP)</strong><br>
                             • Kịch bản The Four Islands (4 Hòn đảo): <strong>12 Điểm (12 VP)</strong><br>
-                            • Kịch bản Voyages of Discovery (Đại Hải Trình): <strong>13 Điểm (13 VP)</strong>
+                            • Kịch bản Voyages of Discovery (Đại Hải Trình): <strong>13 Điểm (13 VP)</strong><br>
+                            • Kịch bản Cities & Knights (Thành Phố & Hiệp Sĩ): <strong>13 Điểm (13 VP)</strong>
                         </div>
                     </div>
                     <h4 style="color: var(--gold); margin: 16px 0 8px;">Bảng Tính Điểm Chiến Thắng (VP)</h4>
@@ -1664,6 +1863,11 @@
                                     <td>Nâng cấp từ Khu định cư (+1 VP so với định cư). Cho gấp đôi sản lượng tài nguyên.</td>
                                 </tr>
                                 <tr>
+                                    <td><strong>Đại Đô Thị (Metropolis)</strong> <span style="font-size:0.75rem; color:#38bdf8;">[C&K]</span></td>
+                                    <td><span class="vp-pill">+2 VP</span></td>
+                                    <td>Nâng cấp nhánh Đô thị lên Cấp 4/5. Gắn vào Thành phố mang lại tổng 4 VP và miễn nhiễm cướp phá!</td>
+                                </tr>
+                                <tr>
                                     <td><strong>Con Đường Dài Nhất (Longest Road)</strong></td>
                                     <td><span class="vp-pill">2 VP</span></td>
                                     <td>Trao cho người đầu tiên nối chuỗi đường/thuyền liên tục từ <strong>5 đoạn</strong> trở lên. Người nào vượt qua kỷ lục sẽ cướp danh hiệu này!</td>
@@ -1671,12 +1875,22 @@
                                 <tr>
                                     <td><strong>Đội Quân Mạnh Nhất (Largest Army)</strong></td>
                                     <td><span class="vp-pill">2 VP</span></td>
-                                    <td>Trao cho người đầu tiên kích hoạt và lật mở tối thiểu <strong>3 thẻ Hiệp Sĩ (Knight)</strong>. Người có số Hiệp sĩ nhiều hơn sẽ giành lấy danh hiệu này.</td>
+                                    <td>Trao cho người đầu tiên kích hoạt và lật mở tối thiểu <strong>3 thẻ Hiệp Sĩ (Knight)</strong> trong chế độ Cơ bản.</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Thẻ Điểm Ẩn (Victory Point Card)</strong></td>
+                                    <td><strong>Người Bảo Vệ Catan (Defender of Catan)</strong> <span style="font-size:0.75rem; color:#38bdf8;">[C&K]</span></td>
+                                    <td><span class="vp-pill">1 VP / huy hiệu</span></td>
+                                    <td>Mỗi lần đóng góp sức mạnh hiệp sĩ Active lớn nhất đánh lui quân man rợ, nhận 1 Huy hiệu bảo vệ.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Kiểm Soát Thương Nhân (Merchant)</strong> <span style="font-size:0.75rem; color:#38bdf8;">[C&K]</span></td>
+                                    <td><span class="vp-pill">1 VP</span></td>
+                                    <td>Người chơi đang đặt quân Thương nhân tại ô đất tiếp giáp công trình của mình nhận thêm 1 VP và quyền đổi 2:1.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Thẻ Điểm Ẩn / Tiến Bộ (Victory Point Card)</strong></td>
                                     <td><span class="vp-pill">1 VP / thẻ</span></td>
-                                    <td>Rút từ xấp Thẻ Phát Triển. Giữ bí mật trên tay cho đến khi đủ điểm tuyên bố thắng cuộc!</td>
+                                    <td>Thẻ VP từ bộ Thẻ Phát Triển hoặc Thẻ Tiến Bộ (Máy In, Hiến Pháp). Giữ bí mật hoặc lật mở tính điểm vĩnh viễn!</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Khám Phá Đảo Mới (Seafarers Bonus)</strong></td>
@@ -2060,6 +2274,295 @@
                         <div class="tip-body">
                             <strong>Khai thác Cảng biển thông minh:</strong>
                             <div>Nếu bạn chiếm được một ô đất có sản lượng tài nguyên áp đảo (ví dụ ô Cừu số 6 hoặc số 8), hãy cố gắng xây định cư tại <strong>Cảng Cừu 2:1</strong>. Khi đó cứ 2 con cừu sẽ biến thành bất kỳ tài nguyên nào bạn muốn, tạo thành bộ máy sản xuất vô địch!</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 10: Cities & Knights Overview -->
+                <div class="rules-section" id="sec-ck-overview">
+                    <div class="sec-heading">
+                        <span class="sec-badge" style="background:linear-gradient(135deg, #0284c7, #1e40af); color:#fff; border-color:#38bdf8;">PHẦN 10 • C&K</span>
+                        <h3>TỔNG QUAN BẢN MỞ RỘNG CITIES & KNIGHTS (THÀNH PHỐ & HIỆP SĨ)</h3>
+                    </div>
+                    <p>Bản mở rộng <strong>Thành Phố & Hiệp Sĩ (Cities & Knights - 5th Edition)</strong> là phiên bản chiến thuật đỉnh cao và có chiều sâu nhất của Catan. Các hòn đảo giờ đây không chỉ cạnh tranh mở rộng mà còn phải đối mặt với các đợt càn quét tàn khốc của <strong>Hạm Đội Man Rợ (Barbarians)</strong> từ biển khơi, đồng thời phát triển các Đô Thị phồn vinh!</p>
+
+                    <div class="highlight-box">
+                        <strong>Mục tiêu chiến thắng:</strong> Cần đạt tối thiểu <strong>13 Điểm Chiến Thắng (13 VP)</strong> trong lượt của mình để giành chiến thắng ngay lập tức!
+                    </div>
+
+                    <div class="step-card" style="margin-top: 14px;">
+                        <strong style="color:var(--gold); font-size:1.02rem;">1. Giai Đoạn Thiết Lập Bàn Cờ Ban Đầu (Setup Khác Biệt):</strong>
+                        <p style="margin:6px 0 0;">Khác với bản cơ bản, khi bắt đầu trận đấu C&K:</p>
+                        <ul style="margin:4px 0 0; padding-left:20px;">
+                            <li><strong>Vòng 1 (Lượt đi):</strong> Mỗi người chơi đặt <strong>1 Khu Định Cư</strong> + 1 Đường bộ (hoặc 1 Thuyền buồm).</li>
+                            <li><strong>Vòng 2 (Lượt về):</strong> Mỗi người chơi đặt <strong>1 THÀNH PHỐ</strong> (thay vì Định cư) + 1 Đường bộ (hoặc Thuyền buồm).</li>
+                            <li><strong>Tài nguyên khởi đầu:</strong> Người chơi nhận ngay tài nguyên từ 3 ô đất tiếp giáp với <em>Thành Phố</em> vừa đặt ở Vòng 2 (kể cả Hàng Hóa mới nếu tiếp giáp Rừng, Đồng cỏ hoặc Núi!).</li>
+                        </ul>
+                    </div>
+
+                    <div class="step-card" style="margin-top: 12px;">
+                        <strong style="color:var(--gold); font-size:1.02rem;">2. Cơ Chế 3 Viên Xúc Xắc Trong Mỗi Lượt:</strong>
+                        <p style="margin:6px 0 0;">Mỗi lượt chơi tung đồng thời <strong>3 viên xúc xắc</strong>:</p>
+                        <div class="trade-types-grid" style="margin-top:8px;">
+                            <div class="trade-card">
+                                <div class="trade-title" style="color:#ef4444;">🎲 1 Xúc Xắc Đỏ (1-6)</div>
+                                <p style="margin:4px 0 0; font-size:0.85rem;">Quyết định việc rút Thẻ Tiến Bộ khi đối chiếu với Cấp Nâng Cấp Đô Thị của người chơi, đồng thời cộng điểm số sản xuất.</p>
+                            </div>
+                            <div class="trade-card">
+                                <div class="trade-title" style="color:#fbbf24;">🎲 1 Xúc Xắc Vàng (1-6)</div>
+                                <p style="margin:4px 0 0; font-size:0.85rem;">Cộng với Xúc xắc Đỏ để tạo ra tổng số từ 2 đến 12 (phân phối tài nguyên/hàng hóa hoặc kích hoạt bão số 7).</p>
+                            </div>
+                            <div class="trade-card">
+                                <div class="trade-title" style="color:#38bdf8;">🏴‍☠️ 1 Xúc Xắc Sự Kiện (Event Die)</div>
+                                <p style="margin:4px 0 0; font-size:0.85rem;">Gồm 3 mặt Thuyền Man Rợ màu đen và 3 mặt Cổng Thành (Xanh lá Khoa học, Vàng Thương mại, Xanh dương Chính trị).</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert-box success-box" style="margin-top: 14px;">
+                        <strong>Trình tự giải quyết xúc xắc bắt buộc:</strong><br>
+                        1. <strong>Xúc xắc Sự kiện giải quyết ĐẦU TIÊN:</strong> Thuyền man rợ tiến thêm 1 bước HOẶC phát Thẻ Tiến Bộ cho người có cấp công trình tương ứng với mặt xúc xắc đỏ.<br>
+                        2. <strong>Xúc xắc sản xuất (Đỏ + Vàng) giải quyết KẾ TIẾP:</strong> Phát tài nguyên/hàng hóa hoặc kích hoạt luật nộp phạt số 7.
+                    </div>
+
+                    <div class="alert-box danger-box" style="margin-top: 10px;">
+                        <strong>Luật trì hoãn Tên Cướp (Robber Delay):</strong><br>
+                        Trước khi quân man rợ tấn công hòn đảo lần đầu tiên, Tên Cướp bị khóa chân tại Sa mạc. Nếu gieo ra số 7 trong giai đoạn này: <strong>Người chơi vẫn phải bỏ nửa số bài nếu vượt ngưỡng an toàn</strong>, nhưng Tên Cướp <strong>KHÔNG được di chuyển</strong> và không ai bị cướp bài!
+                    </div>
+                </div>
+
+                <!-- Section 11: Commodities & City Improvements -->
+                <div class="rules-section" id="sec-ck-commodities">
+                    <div class="sec-heading">
+                        <span class="sec-badge" style="background:linear-gradient(135deg, #0284c7, #1e40af); color:#fff; border-color:#38bdf8;">PHẦN 11 • C&K</span>
+                        <h3>HÀNG HÓA MỚI (COMMODITIES) & NÂNG CẤP ĐÔ THỊ (IMPROVEMENTS)</h3>
+                    </div>
+                    <p>Trong C&K, Thành Phố không còn đơn thuần nhân đôi tài nguyên mà sản xuất thêm các loại <strong>Hàng Hóa Tinh Chế (Commodities)</strong> quý giá, dùng để nâng cấp các công trình đô thị và mở khóa các đặc quyền tối thượng!</p>
+
+                    <h4 style="color: var(--gold); margin: 16px 0 8px;">1. Bảng Thu Hoạch Sản Lượng Của Thành Phố</h4>
+                    <div class="rules-table-container">
+                        <table class="rules-table">
+                            <thead>
+                                <tr>
+                                    <th>Địa Hình Ô Đất</th>
+                                    <th>Sản Lượng Định Cư (Settlement)</th>
+                                    <th>Sản Lượng Thành Phố (City)</th>
+                                    <th>Nhánh Đô Thị Sử Dụng</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>🌲 Rừng Rậm (Forest)</strong></td>
+                                    <td>1 Gỗ (Lumber)</td>
+                                    <td><strong>1 Gỗ + 1 Giấy (Paper 📜)</strong></td>
+                                    <td><span style="color:#34d399; font-weight:bold;">Khoa Học (Science)</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>🐑 Đồng Cỏ (Pasture)</strong></td>
+                                    <td>1 Cừu (Wool)</td>
+                                    <td><strong>1 Cừu + 1 Vải (Cloth 🧶)</strong></td>
+                                    <td><span style="color:#fbbf24; font-weight:bold;">Thương Mại (Trade)</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>⛰️ Rặng Núi (Mountains)</strong></td>
+                                    <td>1 Quặng (Ore)</td>
+                                    <td><strong>1 Quặng + 1 Đồng Xu (Coin 🪙)</strong></td>
+                                    <td><span style="color:#60a5fa; font-weight:bold;">Chính Trị (Politics)</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>🧱 Đồi Đất Sét (Hills)</strong></td>
+                                    <td>1 Gạch (Brick)</td>
+                                    <td><strong>2 Gạch (Brick)</strong></td>
+                                    <td>Xây Tường Thành & Công trình</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>🌾 Cánh Đồng (Fields)</strong></td>
+                                    <td>1 Lúa (Grain)</td>
+                                    <td><strong>2 Lúa (Grain)</strong></td>
+                                    <td>Kích hoạt Hiệp Sĩ & Nâng cấp</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="step-card" style="margin-top: 14px;">
+                        <strong style="color:var(--gold); font-size:1.02rem;">2. Tường Thành (City Wall) - Gia Tăng Giới Hạn Bài An Toàn:</strong>
+                        <p style="margin:4px 0 0;">
+                            • <strong>Chi phí xây dựng:</strong> <strong>2 Gạch (Brick)</strong>.<br>
+                            • <strong>Tác dụng:</strong> Mỗi Tường Thành gắn vào 1 thành phố sẽ tăng giới hạn bài an toàn khi đổ số 7 thêm <strong>+2 thẻ</strong>.<br>
+                            • <strong>Giới hạn tối đa:</strong> Mỗi người chơi được xây tối đa 3 Tường Thành (mỗi thành phố chỉ gắn 1 tường).<br>
+                            • <strong>Bảng giới hạn an toàn:</strong> 0 Tường = <strong>7 thẻ</strong> ➔ 1 Tường = <strong>9 thẻ</strong> ➔ 2 Tường = <strong>11 thẻ</strong> ➔ 3 Tường = <strong>13 thẻ</strong>.<br>
+                            • <em>Lưu ý: Tổng số bài tính chung cả Tài Nguyên + Hàng Hóa. Nếu Thành phố bị man rợ giáng cấp, Tường Thành tại đó bị phá hủy ngay!</em>
+                        </p>
+                    </div>
+
+                    <h4 style="color: var(--gold); margin: 18px 0 8px;">3. Ba Nhánh Nâng Cấp Đô Thị (5 Cấp Mỗi Nhánh)</h4>
+                    <p>Để nâng cấp, bạn cần sở hữu ít nhất 1 Thành Phố trên bàn cờ. Chi phí Cấp N = <strong>N hàng hóa tương ứng</strong> (Cấp 1: 1 thẻ ➔ Cấp 2: 2 thẻ ➔ Cấp 3: 3 thẻ ➔ Cấp 4: 4 thẻ ➔ Cấp 5: 5 thẻ).</p>
+
+                    <div class="devcard-list">
+                        <div class="devcard-box" style="border-left-color:#10b981;">
+                            <div class="devcard-header" style="color:#34d399;">📗 NHÁNH KHOA HỌC (SCIENCE) - DÙNG HÀNG HÓA GIẤY (PAPER)</div>
+                            <p>Tăng cơ hội rút thẻ tiến bộ Khoa Học khi xúc xắc sự kiện ra Cổng thành xanh lá.</p>
+                            <ul style="margin:4px 0 0; padding-left:18px; font-size:0.88rem;">
+                                <li><strong>Cấp 3 (Cầu Thủy Ngân - Aqueduct):</strong> Mỗi khi xúc xắc sản xuất gieo ra một con số mà bạn KHÔNG nhận được bất kỳ tài nguyên hay hàng hóa nào, bạn được <strong>tự chọn lấy 1 tài nguyên bất kỳ từ ngân hàng</strong> (trừ khi gieo ra số 7)!</li>
+                                <li><strong>Cấp 4:</strong> Đạt điều kiện tiếp nhận <strong>Đại Đô Thị Khoa Học (+2 VP)</strong>.</li>
+                            </ul>
+                        </div>
+
+                        <div class="devcard-box" style="border-left-color:#f59e0b;">
+                            <div class="devcard-header" style="color:#fbbf24;">📙 NHÁNH THƯƠNG MẠI (TRADE) - DÙNG HÀNG HÓA VẢI (CLOTH)</div>
+                            <p>Tăng cơ hội rút thẻ tiến bộ Thương Mại khi xúc xắc sự kiện ra Cổng thành màu vàng.</p>
+                            <ul style="margin:4px 0 0; padding-left:18px; font-size:0.88rem;">
+                                <li><strong>Cấp 3 (Hội Thương Nhân - Trading Guild):</strong> Mở khóa đặc quyền giao dịch tối cao: Được phép <strong>đổi 2 Hàng Hóa cùng loại lấy 1 Hàng Hóa hoặc Tài Nguyên bất kỳ</strong> với ngân hàng bất cứ lúc nào!</li>
+                                <li><strong>Cấp 4:</strong> Đạt điều kiện tiếp nhận <strong>Đại Đô Thị Thương Mại (+2 VP)</strong>.</li>
+                            </ul>
+                        </div>
+
+                        <div class="devcard-box" style="border-left-color:#3b82f6;">
+                            <div class="devcard-header" style="color:#60a5fa;">📘 NHÁNH CHÍNH TRỊ (POLITICS) - DÙNG HÀNG HÓA ĐỒNG XU (COIN)</div>
+                            <p>Tăng cơ hội rút thẻ tiến bộ Chính Trị khi xúc xắc sự kiện ra Cổng thành màu xanh dương.</p>
+                            <ul style="margin:4px 0 0; padding-left:18px; font-size:0.88rem;">
+                                <li><strong>Cấp 3 (Pháo Đài Quân Sự - Fortress):</strong> Mở khóa quyền năng quân sự: Cho phép bạn <strong>thăng cấp Hiệp Sĩ lên bậc cao nhất: Hiệp Sĩ Tinh Nhuệ (Mighty Knight - Sức mạnh 3)</strong>!</li>
+                                <li><strong>Cấp 4:</strong> Đạt điều kiện tiếp nhận <strong>Đại Đô Thị Chính Trị (+2 VP)</strong>.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="step-card" style="margin-top: 14px; background: rgba(56, 189, 248, 0.08); border-color:#38bdf8;">
+                        <strong style="color:#38bdf8; font-size:1.02rem;">🏛️ Quy Tắc Tranh Đoạt Đại Đô Thị (Metropolis - +2 VP):</strong>
+                        <ul style="margin:4px 0 0; padding-left:20px; font-size:0.88rem;">
+                            <li>Người chơi đầu tiên đạt <strong>Cấp 4</strong> của một nhánh sẽ gắn tháp Đại Đô Thị lên một thành phố của mình, mang lại <strong>+2 VP</strong> (Thành phố đó có tổng 4 VP).</li>
+                            <li>Nếu đối thủ vươn lên đạt <strong>Cấp 5</strong> trước bạn, họ sẽ <strong>cướp lấy Đại Đô Thị</strong> về thành phố của họ!</li>
+                            <li>Nếu bạn đạt tới <strong>Cấp 5</strong>, bạn sẽ giữ Đại Đô Thị đó <strong>vĩnh viễn</strong>, đối thủ không thể cướp được nữa.</li>
+                            <li><strong>Đặc quyền miễn nhiễm:</strong> Thành phố có gắn Đại Đô Thị <strong>hoàn toàn miễn nhiễm</strong> trước sự cướp phá của Hạm Đội Man Rợ!</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Section 12: Knights & Barbarians Defense -->
+                <div class="rules-section" id="sec-ck-knights-barbarians">
+                    <div class="sec-heading">
+                        <span class="sec-badge" style="background:linear-gradient(135deg, #0284c7, #1e40af); color:#fff; border-color:#38bdf8;">PHẦN 12 • C&K</span>
+                        <h3>ĐỘI QUÂN HIỆP SĨ & THỦ THÀNH CHỐNG HẠM ĐỘI MAN RỢ</h3>
+                    </div>
+                    <p>Trong Cities & Knights, Hiệp Sĩ là các đơn vị quân sự cơ động thực thụ trên bàn cờ. Họ có nhiệm vụ bảo vệ hòn đảo khỏi sự càn quét của quân man rợ, đồng thời xua đuổi Tên Cướp và kìm kẹp đối thủ!</p>
+
+                    <h4 style="color: var(--gold); margin: 16px 0 8px;">1. Ba Cấp Bậc Hiệp Sĩ (Knights)</h4>
+                    <div class="trade-types-grid">
+                        <div class="trade-card" style="border-color:#94a3b8;">
+                            <div class="trade-title" style="color:#e2e8f0;">🥉 Hiệp Sĩ Thường (Basic)</div>
+                            <div class="trade-badge">Sức mạnh: 1</div>
+                            <p style="margin:4px 0 0; font-size:0.85rem;">Cấp khởi điểm khi chiêu mộ. Mũ sắt đơn giản, đóng góp 1 điểm phòng thủ khi Active.</p>
+                        </div>
+                        <div class="trade-card" style="border-color:#38bdf8;">
+                            <div class="trade-title" style="color:#38bdf8;">🥈 Hiệp Sĩ Mạnh (Strong)</div>
+                            <div class="trade-badge">Sức mạnh: 2</div>
+                            <p style="margin:4px 0 0; font-size:0.85rem;">Thăng cấp từ Hiệp sĩ Thường. Khiên tròn dũng mãnh, đóng góp 2 điểm phòng thủ khi Active.</p>
+                        </div>
+                        <div class="trade-card" style="border-color:#ffd700;">
+                            <div class="trade-title" style="color:#ffd700;">🥇 Hiệp Sĩ Tinh Nhuệ (Mighty)</div>
+                            <div class="trade-badge">Sức mạnh: 3</div>
+                            <p style="margin:4px 0 0; font-size:0.85rem;">Đỉnh cao quân sự (cần Chính trị Cấp 3). Khiên vàng hộ quốc, đóng góp 3 điểm phòng thủ khi Active.</p>
+                        </div>
+                    </div>
+
+                    <div class="step-card" style="margin-top: 14px;">
+                        <strong style="color:var(--gold); font-size:1.02rem;">2. Bốn Thao Tác Quản Lý & Điều Động Hiệp Sĩ:</strong>
+                        <ul style="margin:4px 0 0; padding-left:20px; font-size:0.88rem;">
+                            <li><strong>Chiêu mộ (Recruit):</strong> Chi phí <strong>1 Cừu + 1 Quặng</strong>. Đặt 1 Hiệp sĩ Thường tại giao điểm trống tiếp giáp mạng lưới đường bộ/thuyền buồm của bạn. <em>Không bị cản bởi luật khoảng cách 2 cạnh!</em> Ban đầu ở trạng thái <strong>Inactive (Nghỉ ngơi)</strong>.</li>
+                            <li><strong>Kích hoạt (Activate):</strong> Chi phí <strong>1 Lúa</strong>. Đổi mũ hiệp sĩ sang trạng thái <strong>Active (Chiến đấu)</strong>. <em>Lưu ý: Không được kích hoạt rồi hành động ngay trong cùng một lượt!</em></li>
+                            <li><strong>Thăng cấp (Promote):</strong> Chi phí <strong>1 Cừu + 1 Quặng</strong>. Tăng thêm 1 bậc sức mạnh (Thường ➔ Mạnh ➔ Tinh nhuệ). Mỗi hiệp sĩ chỉ được thăng cấp tối đa 1 lần trong mỗi lượt.</li>
+                            <li><strong>Các hành động chiến thuật của Hiệp sĩ Active (tiêu hao Active ➔ Inactive):</strong>
+                                <ul style="margin:3px 0 0; padding-left:16px;">
+                                    <li><em>Di chuyển:</em> Đi dọc theo tuyến đường của bạn đến một giao điểm trống kề cận.</li>
+                                    <li><em>Đẩy lùi đối thủ (Displace):</em> Đi vào giao điểm có hiệp sĩ đối phương yếu hơn. Hiệp sĩ đối phương buộc phải tháo chạy sang giao điểm trống khác hoặc bị loại về kho!</li>
+                                    <li><em>Xua đuổi Tên Cướp:</em> Nếu đứng kề ô đất có Tên Cướp, đuổi Tên Cướp sang ô đất khác và rút trộm 1 thẻ của người chơi kề bên.</li>
+                                    <li><em>Chặn đường (Block road):</em> Hiệp sĩ đứng trên giao điểm sẽ ngắt mạch Con Đường Dài Nhất của đối phương!</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="step-card" style="margin-top: 14px; background: rgba(239, 68, 68, 0.08); border-color:#ef4444;">
+                        <strong style="color:#ef4444; font-size:1.05rem;">🏴‍☠️ Trận Chiến Hạm Đội Man Rợ (Barbarian Fleet Attack):</strong>
+                        <p style="margin:4px 0 0; font-size:0.88rem;">
+                            Mỗi khi xúc xắc sự kiện ra mặt Thuyền Đen, thuyền man rợ tiến thêm 1 nấc trên thanh hành trình <strong>0/7</strong>. Khi chạm nấc thứ 7, trận chiến sống còn bùng nổ:
+                        </p>
+                        <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:6px; margin:8px 0; font-size:0.9rem;">
+                            • <strong>Sức Tấn Công Man Rợ</strong> = <strong>Tổng số Thành Phố</strong> của TẤT CẢ người chơi trên bàn cờ.<br>
+                            • <strong>Sức Phòng Thủ Catan</strong> = <strong>Tổng sức mạnh</strong> của TẤT CẢ Hiệp Sĩ đang <strong>Active</strong> trên toàn bàn cờ.
+                        </div>
+                        <p style="margin:6px 0 0; font-size:0.88rem;">
+                            <strong>KẾT CỤC TRẬN ĐÁNH:</strong><br>
+                            🛡️ <strong>Nếu Catan Chiến Thắng (Sức Hiệp Sĩ ≥ Sức Man Rợ):</strong><br>
+                            Người chơi có tổng sức mạnh hiệp sĩ Active lớn nhất được vinh danh là <strong>Vị Cứu Tinh của Catan</strong>, nhận <strong>1 Huy Hiệu Người Bảo Vệ (+1 VP vĩnh viễn)</strong>! Nếu nhiều người hòa ở vị trí cao nhất, mỗi người hòa được rút 1 Thẻ Tiến Bộ tự do.<br><br>
+                            ⚔️ <strong>Nếu Man Rợ Chiến Thắng (Sức Hiệp Sĩ < Sức Man Rợ):</strong><br>
+                            Hòn đảo thất thủ! Người chơi đóng góp ít sức mạnh hiệp sĩ Active nhất (hoặc bằng 0) sẽ bị quân man rợ <strong>cướp phá và giáng cấp 1 Thành Phố thành Khu Định Cư</strong>! Đồng thời Tường Thành tại thành phố đó (nếu có) bị sụp đổ hoàn toàn! <em>(Thành phố có Đại Đô Thị được miễn nhiễm).</em><br><br>
+                            • <strong>Sau trận chiến:</strong> Hạm đội man rợ lùi về vạch số 0. <strong>TOÀN BỘ hiệp sĩ Active của tất cả người chơi đều kiệt sức và chuyển về Inactive!</strong>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Section 13: 54 Progress Cards Detail -->
+                <div class="rules-section" id="sec-ck-progress-cards">
+                    <div class="sec-heading">
+                        <span class="sec-badge" style="background:linear-gradient(135deg, #0284c7, #1e40af); color:#fff; border-color:#38bdf8;">PHẦN 13 • C&K</span>
+                        <h3>DANH MỤC CHI TIẾT 54 THẺ TIẾN BỘ (PROGRESS CARDS)</h3>
+                    </div>
+                    <p>Trong C&K, bộ Thẻ Phát Triển cũ được thay thế hoàn toàn bằng <strong>54 Thẻ Tiến Bộ</strong> chia làm 3 bộ bài theo màu. Bạn nhận thẻ này khi xúc xắc sự kiện đổ ra Cổng Thành tương ứng và số trên xúc xắc đỏ nhỏ hơn hoặc bằng Cấp Nâng Cấp của bạn!</p>
+
+                    <div class="alert-box success-box">
+                        <strong>Quy tắc cầm và đánh thẻ tiến bộ:</strong><br>
+                        • Bạn được giữ tối đa <strong>4 Thẻ Tiến Bộ</strong> trên tay. Nếu cuối lượt vượt quá 4 thẻ, phải nộp bỏ bớt vào đáy xấp bài.<br>
+                        • Mỗi lượt bạn được đánh <strong>tối đa 2 Thẻ Tiến Bộ</strong> (thoải mái hơn bản cơ bản chỉ cho đánh 1 thẻ).<br>
+                        • Các thẻ Điểm Chiến Thắng (Máy In, Hiến Pháp) lập tức lật mở tính điểm vĩnh viễn và không tính vào giới hạn 4 thẻ!
+                    </div>
+
+                    <div class="devcard-list" style="margin-top:14px;">
+                        <!-- Science Deck -->
+                        <div class="devcard-box" style="border-left-color:#10b981;">
+                            <div class="devcard-header" style="color:#34d399; font-size:1.05rem;">📗 BỘ BÀI KHOA HỌC (SCIENCE - 18 THẺ)</div>
+                            <ul style="margin:6px 0 0; padding-left:18px; font-size:0.88rem; line-height:1.6;">
+                                <li><strong>Nhà Giả Kim (Alchemist - 2 thẻ):</strong> Đánh trước khi gieo xúc xắc. Bạn được tự do chọn điểm số của 2 xúc xắc sản xuất (Đỏ + Vàng) theo ý muốn! Sau đó chỉ việc tung xúc xắc sự kiện.</li>
+                                <li><strong>Cần Cẩu (Crane - 2 thẻ):</strong> Giảm 1 thẻ hàng hóa khi thực hiện nâng cấp thành phố trong lượt này.</li>
+                                <li><strong>Kỹ Sư (Engineer - 1 thẻ):</strong> Xây 1 Tường Thành hoàn toàn miễn phí.</li>
+                                <li><strong>Nhà Phát Minh (Inventor - 2 thẻ):</strong> Hoán đổi vị trí của 2 đĩa số bất kỳ trên bàn cờ (trừ các đĩa số 2, 6, 8, 12).</li>
+                                <li><strong>Thủy Lợi (Irrigation - 2 thẻ):</strong> Nhận ngay 2 Lúa cho mỗi ô Cánh đồng tiếp giáp với định cư hoặc thành phố của bạn.</li>
+                                <li><strong>Khai Khoáng (Mining - 2 thẻ):</strong> Nhận ngay 2 Quặng cho mỗi ô Núi tiếp giáp với định cư hoặc thành phố của bạn.</li>
+                                <li><strong>Y Học (Medicine - 2 thẻ):</strong> Nâng cấp 1 Định cư lên Thành phố chỉ với giá 2 Quặng + 1 Lúa (tiết kiệm 1 Quặng + 1 Lúa!).</li>
+                                <li><strong>Máy In (Printer - 1 thẻ):</strong> <strong>+1 Điểm Chiến Thắng (1 VP)</strong> vĩnh viễn, lật mở ngay lập tức!</li>
+                                <li><strong>Xây Đường (Road Building - 2 thẻ):</strong> Đặt ngay 2 đoạn đường bộ hoặc 2 thuyền buồm hoàn toàn miễn phí.</li>
+                                <li><strong>Thợ Rèn (Smith - 2 thẻ):</strong> Thăng cấp miễn phí tối đa 2 hiệp sĩ của bạn lên 1 bậc sức mạnh.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Trade Deck -->
+                        <div class="devcard-box" style="border-left-color:#f59e0b;">
+                            <div class="devcard-header" style="color:#fbbf24; font-size:1.05rem;">📙 BỘ BÀI THƯƠNG MẠI (TRADE - 18 THẺ)</div>
+                            <ul style="margin:6px 0 0; padding-left:18px; font-size:0.88rem; line-height:1.6;">
+                                <li><strong>Cảng Thương Mại (Commercial Harbor - 2 thẻ):</strong> Bạn đưa 1 tài nguyên cho mỗi đối thủ, và ép họ phải đưa lại cho bạn 1 thẻ hàng hóa tự chọn trên tay họ!</li>
+                                <li><strong>Đại Thương Gia (Master Merchant - 2 thẻ):</strong> Chọn 1 đối thủ có nhiều VP hơn bạn: Xem toàn bộ bài trên tay họ và rút lấy 2 thẻ bạn thích.</li>
+                                <li><strong>Thương Nhân (Merchant - 6 thẻ):</strong> Đặt quân Thương nhân lên 1 ô đất tiếp giáp công trình của bạn. Mang lại <strong>+1 VP</strong> và quyền đổi <strong>2:1</strong> với ngân hàng cho tài nguyên của ô đó!</li>
+                                <li><strong>Đội Tàu Buôn (Merchant Fleet - 2 thẻ):</strong> Chọn 1 loại tài nguyên/hàng hóa; trong suốt lượt này bạn được đổi loại thẻ đó với ngân hàng theo tỷ lệ 2:1!</li>
+                                <li><strong>Độc Quyền Tài Nguyên (Resource Monopoly - 4 thẻ):</strong> Gọi tên 1 tài nguyên; mỗi người chơi phải nộp tối đa 2 thẻ tài nguyên đó cho bạn.</li>
+                                <li><strong>Độc Quyền Hàng Hóa (Trade Monopoly - 2 thẻ):</strong> Gọi tên 1 hàng hóa; mỗi người chơi phải nộp 1 thẻ hàng hóa đó cho bạn.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Politics Deck -->
+                        <div class="devcard-box" style="border-left-color:#3b82f6;">
+                            <div class="devcard-header" style="color:#60a5fa; font-size:1.05rem;">📘 BỘ BÀI CHÍNH TRỊ (POLITICS - 18 THẺ)</div>
+                            <ul style="margin:6px 0 0; padding-left:18px; font-size:0.88rem; line-height:1.6;">
+                                <li><strong>Nhà Ngoại Giao (Diplomat - 2 thẻ):</strong> Gỡ bỏ 1 đoạn đường bộ hở ở đầu tuyến của đối thủ (hoặc dời 1 đoạn đường hở của bạn sang vị trí mới).</li>
+                                <li><strong>Gián Điệp (Spy - 3 thẻ):</strong> Xem toàn bộ Thẻ Tiến Bộ trên tay một đối thủ và cướp lấy 1 thẻ về tay bạn!</li>
+                                <li><strong>Thống Soái (Warlord - 2 thẻ):</strong> Kích hoạt miễn phí TOÀN BỘ hiệp sĩ của bạn mà không tốn hạt Lúa nào!</li>
+                                <li><strong>Âm Mưu (Intrigue - 2 thẻ):</strong> Đẩy lùi 1 hiệp sĩ đối thủ đang án ngữ trên giao điểm kề đường của bạn mà không cần dùng hiệp sĩ mạnh hơn.</li>
+                                <li><strong>Giám Mục (Bishop - 2 thẻ):</strong> Di chuyển Tên Cướp sang ô đất mới và rút trộm 1 thẻ từ TẤT CẢ người chơi có công trình kề ô đó!</li>
+                                <li><strong>Hiến Pháp (Constitution - 1 thẻ):</strong> <strong>+1 Điểm Chiến Thắng (1 VP)</strong> vĩnh viễn, lật mở ngay lập tức!</li>
+                                <li><strong>Kẻ Đào Ngũ (Deserter - 2 thẻ):</strong> Ép 1 đối thủ tự loại bỏ 1 hiệp sĩ của họ; bạn được đặt 1 hiệp sĩ cùng cấp bậc vào bàn cờ miễn phí!</li>
+                                <li><strong>Đám Cưới Hoàng Gia (Wedding - 2 thẻ):</strong> Mỗi đối thủ có số VP cao hơn bạn buộc phải tặng cho bạn 2 thẻ bài tài nguyên/hàng hóa tự chọn trên tay họ.</li>
+                                <li><strong>Kẻ Phá Hoại (Saboteur - 2 thẻ):</strong> Tất cả đối thủ có số VP bằng hoặc nhiều hơn bạn phải nộp bỏ đúng 1/2 số thẻ trên tay vào ngân hàng!</li>
+                            </ul>
                         </div>
                     </div>
                 </div>

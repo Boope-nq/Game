@@ -11,6 +11,9 @@ yarn-debug.log*
 # Environment
 .env
 .env.local
+.env.test
+test-results/
+playwright-report/
 
 # OS Files
 .DS_Store
@@ -19,3 +22,11 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+
+# Scratch & Debug Files
+scratch_*.js
+
+# QA test artifacts
+QA/artifacts/
+
+

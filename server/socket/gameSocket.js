@@ -243,7 +243,12 @@ module.exports = (io) => {
                         settlements: [],
                         cities: [],
                         roads: [],
-                        ships: []
+                        ships: [],
+                        commodities: { PAPER: 0, CLOTH: 0, COIN: 0 },
+                        improvements: { trade: 0, politics: 0, science: 0 },
+                        knights: [],
+                        cityWalls: [],
+                        defenderTokens: 0,
                     };
                 }),
                 turnIndex: 0,
@@ -251,7 +256,11 @@ module.exports = (io) => {
                 board: {},
                 robber: null,
                 pirate: null,
-                lastRoll: null
+                lastRoll: null,
+                ruleset: room.scenario === 'cities_knights' ? 'cities_knights' : 'base',
+                barbarianPosition: 0,
+                barbarianAttackCount: 0,
+                robberOnBoard: room.scenario !== 'cities_knights',
             };
 
             gameStates.set(roomId, gameState);
@@ -474,6 +483,7 @@ module.exports = (io) => {
             const payload = {
                 roomId: room.id,
                 roomCode: room.code,
+                scenario: room.scenario || 'base',
                 players: players || [],
                 maxPlayers: maxPlayers || room.max_players || 3,
                 useBots: !!useBots,

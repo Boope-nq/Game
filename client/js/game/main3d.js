@@ -6,6 +6,8 @@ import { Dice3D } from './Dice3D.js?v=solid5';
 import { GameClient } from './GameClient.js';
 import { DecorativeIslands } from './DecorativeIslands.js';
 import { GameState, Phase, BUILD_COST } from '/src/gameplay/GameState.js';
+import { CKGameState } from '/src/gameplay/CKGameState.js';
+import { CKKnightEngine } from '/src/gameplay/CKKnightEngine.js';
 import { TileType } from '/src/core/HexTile.js';
 import { BGMManager } from '../audio/bgmManager.js';
 import { VictoryCelebration3D } from './VictoryCelebration3D.js';
@@ -256,7 +258,8 @@ async function init() {
                     victoryCelebration.destroy();
                     victoryCelebration = null;
                 }
-                initGameWithPlayers(data.players, data.maxPlayers, data.useBots, data.seed);
+                if (data.scenario) sessionStorage.setItem(`catan_room_${roomCode}_scenario`, data.scenario);
+                initGameWithPlayers(data.players, data.maxPlayers, data.useBots, data.seed, { scenario: data.scenario });
                 showTurnToast('Chủ phòng đã bắt đầu trận đấu! Chúc các bạn may mắn!');
             },
             onPlayerLeft: async (data) => {
@@ -382,7 +385,8 @@ function saveGameProgress() {
             players: cachedJoinedPlayers,
             maxPlayers: cachedMaxPlayers,
             useBots: cachedUseBots,
-            seed: activeGameSeed || roomCode
+            seed: activeGameSeed || roomCode,
+            scenario: roomData?.scenario || (gameState?.ruleset === 'cities_knights' ? 'cities_knights' : 'base')
         },
         actions: recordedActions,
         savedAt: Date.now()
@@ -428,13 +432,13 @@ function restoreGameSession(startPayload, actions = []) {
     const waitingModal = document.getElementById('waiting-modal');
     if (waitingModal) waitingModal.classList.add('hidden');
 
-    // 2. Khởi tạo lại ván cờ với cấu hình ban đầu
+    const scenarioToUse = startPayload.scenario || roomData?.scenario || sessionStorage.getItem(`catan_room_${roomCode}_scenario`);
     initGameWithPlayers(
         startPayload.players,
         startPayload.maxPlayers || 3,
         !!startPayload.useBots,
         startPayload.seed || roomCode,
-        { isRestoring: true }
+        { isRestoring: true, scenario: scenarioToUse }
     );
 
     // 3. Fast-forward replay tuần tự các hành động (không animation 3D xúc xắc để tức thì)
@@ -911,7 +915,12 @@ function initGameWithPlayers(joinedPlayers, maxPlayers, useBots = false, customS
     const activeSeed = customSeed || roomCode;
     activeGameSeed = activeSeed;
     window.activeGameSeed = activeSeed;
-    gameState = new GameState(playerNames.length, playerNames, activeSeed);
+    const targetScenario = options?.scenario || roomData?.scenario;
+    if (targetScenario === 'cities_knights') {
+        gameState = new CKGameState(playerNames.length, playerNames, activeSeed);
+    } else {
+        gameState = new GameState(playerNames.length, playerNames, activeSeed);
+    }
 
     // Tag each player as human or bot and assign synchronized avatars
     gameState.players.forEach((p, idx) => {
@@ -983,9 +992,14 @@ function applyAction(action, shouldBroadcast = true, isReplaying = false) {
     switch (action.type) {
         case 'setup_settlement': {
             const v = gameState.vertices.get(action.vKey);
+            const isRound2City = (gameState.ruleset === 'cities_knights' && gameState.setupRound === 2);
             if (v && gameState.setupPlaceSettlement(action.vKey).ok) {
-                pieces.placeSettlement(action.vKey, hexBoard.vertexToWorld(v), colorHex);
-                if (!isReplaying) logEvent(`[Xây dựng] ${cp.name} đặt Định cư.`);
+                if (isRound2City) {
+                    pieces.placeCity(action.vKey, hexBoard.vertexToWorld(v), colorHex);
+                } else {
+                    pieces.placeSettlement(action.vKey, hexBoard.vertexToWorld(v), colorHex);
+                }
+                if (!isReplaying) logEvent(`[Xây dựng] ${cp.name} đặt ${isRound2City ? 'Thành phố' : 'Định cư'}.`);
             }
             break;
         }
@@ -1005,14 +1019,21 @@ function applyAction(action, shouldBroadcast = true, isReplaying = false) {
             break;
         }
         case 'roll': {
-            const res = gameState.rollDice(action.d1, action.d2);
+            const res = gameState.rollDice(action.d1, action.d2, action.eventDie);
             if (res.ok) {
-                const { d1, d2, total } = res.roll;
+                const { d1, d2, total, eventDie } = res.roll;
+                let eventStr = '';
+                if (eventDie) {
+                    if (eventDie === 'ship') eventStr = ' | 🏴‍☠️ Thuyền';
+                    else if (eventDie === 'science') eventStr = ' | 🧪 Cổng Khoa Học';
+                    else if (eventDie === 'trade') eventStr = ' | ⚖️ Cổng Thương Mại';
+                    else if (eventDie === 'politics') eventStr = ' | 🏛️ Cổng Chính Trị';
+                }
                 const diceDisplay = document.getElementById('dice-display');
                 if (isReplaying) {
                     if (diceDisplay) {
                         diceDisplay.style.display = 'inline-flex';
-                        diceDisplay.innerHTML = `${DICE_ICON_HTML} ${d1} + ${d2} = ${total}`;
+                        diceDisplay.innerHTML = `${DICE_ICON_HTML} ${d1} + ${d2} = ${total}${eventStr}`;
                         diceDisplay.style.color = (total === 7) ? '#ff4d4d' : 'var(--gold)';
                     }
                 } else {
@@ -1023,18 +1044,18 @@ function applyAction(action, shouldBroadcast = true, isReplaying = false) {
                     }
 
                     if (dice3D) {
-                        dice3D.roll(d1, d2, (finalD1, finalD2) => {
+                        dice3D.roll(d1, d2, eventDie, (finalD1, finalD2) => {
                             if (diceDisplay) {
-                                diceDisplay.innerHTML = `${DICE_ICON_HTML} ${finalD1} + ${finalD2} = ${total}`;
+                                diceDisplay.innerHTML = `${DICE_ICON_HTML} ${finalD1} + ${finalD2} = ${total}${eventStr}`;
                                 diceDisplay.style.color = (total === 7) ? '#ff4d4d' : 'var(--gold)';
                             }
                         });
                     } else if (diceDisplay) {
-                        diceDisplay.innerHTML = `${DICE_ICON_HTML} ${d1} + ${d2} = ${total}`;
+                        diceDisplay.innerHTML = `${DICE_ICON_HTML} ${d1} + ${d2} = ${total}${eventStr}`;
                         diceDisplay.style.color = (total === 7) ? '#ff4d4d' : 'var(--gold)';
                     }
 
-                    logEvent(`[Xúc xắc] ${cp.name} đổ được: ${d1} + ${d2} = ${total}`);
+                    logEvent(`[Xúc xắc] ${cp.name} đổ được: ${d1} + ${d2} = ${total}${eventStr ? ' (' + eventStr.replace(' | ', '') + ')' : ''}`);
                 }
             }
             break;
@@ -1142,8 +1163,11 @@ function applyAction(action, shouldBroadcast = true, isReplaying = false) {
             break;
         }
         case 'discard': {
-            gameState.discardResources(action.playerId, action.toDiscard);
-            if (!isReplaying) logEvent(`[Bỏ bài] ${gameState.players[action.playerId].name} bỏ bớt tài nguyên.`);
+            const res = gameState.discardResources(action.playerId, action.toDiscard);
+            if (res && res.ok && !isReplaying) {
+                const totalDiscarded = Object.values(action.toDiscard).reduce((a, b) => a + b, 0);
+                logEvent(`[Bỏ bài] ${gameState.players[action.playerId].name} đã bỏ ${totalDiscarded} thẻ bài.`);
+            }
             break;
         }
         case 'convert_gold': {
@@ -1156,6 +1180,62 @@ function applyAction(action, shouldBroadcast = true, isReplaying = false) {
         case 'gold_pick': {
             gameState.pickGoldResources(action.playerId, action.choices);
             if (!isReplaying) logEvent(`[Mỏ Vàng] ${gameState.players[action.playerId].name} nhận tài nguyên từ Ô Vàng.`);
+            break;
+        }
+        case 'ck_recruit_knight': {
+            if (gameState.recruitKnight) {
+                const res = gameState.recruitKnight(action.vKey);
+                if (res.ok && !isReplaying) logEvent(`[Hiệp sĩ] ${cp.name} chiêu mộ Hiệp sĩ tại ${action.vKey}!`);
+            }
+            break;
+        }
+        case 'ck_activate_knight': {
+            if (gameState.activateKnight) {
+                const res = gameState.activateKnight(action.knightId);
+                if (res.ok && !isReplaying) logEvent(`[Hiệp sĩ] ${cp.name} kích hoạt Hiệp sĩ!`);
+            }
+            break;
+        }
+        case 'ck_promote_knight': {
+            if (gameState.promoteKnight) {
+                const res = gameState.promoteKnight(action.knightId, action.options);
+                if (res.ok && !isReplaying) logEvent(`[Hiệp sĩ] ${cp.name} thăng cấp Hiệp sĩ!`);
+            }
+            break;
+        }
+        case 'ck_move_knight': {
+            if (gameState.moveKnight) {
+                const res = gameState.moveKnight(action.knightId, action.targetVertexKey);
+                if (res.ok && !isReplaying) logEvent(`[Hiệp sĩ] ${cp.name} di chuyển Hiệp sĩ sang ${action.targetVertexKey}!`);
+            }
+            break;
+        }
+        case 'ck_chase_robber': {
+            if (gameState.chaseRobber) {
+                const res = gameState.chaseRobber(action.knightId);
+                if (res.ok && !isReplaying) logEvent(`[Hiệp sĩ] ${cp.name} xua đuổi Tên cướp!`);
+            }
+            break;
+        }
+        case 'ck_improve': {
+            if (gameState.buyImprovement) {
+                const res = gameState.buyImprovement(action.track, action.options);
+                if (res.ok && !isReplaying) logEvent(`[Đô thị] ${cp.name} nâng cấp nhánh ${action.track}!`);
+            }
+            break;
+        }
+        case 'ck_build_wall': {
+            if (gameState.buildCityWall) {
+                const res = gameState.buildCityWall(action.vertexKey);
+                if (res.ok && !isReplaying) logEvent(`[Tường thành] ${cp.name} xây Tường thành tại ${action.vertexKey}!`);
+            }
+            break;
+        }
+        case 'ck_play_progress': {
+            if (gameState.playProgressCard) {
+                const res = gameState.playProgressCard(action.cardId, action.options);
+                if (res.ok && !isReplaying) logEvent(`[Thẻ tiến bộ] ${cp.name} đã đánh thẻ tiến bộ C&K!`);
+            }
             break;
         }
         case 'end_turn': {
@@ -1197,9 +1277,51 @@ function checkAndRevealDiscoveredTiles() {
     }
 }
 
+function syncCKBoardPieces() {
+    if (!gameState || gameState.ruleset !== 'cities_knights') return;
+
+    // 1. Sync city walls
+    for (const p of gameState.players) {
+        if (p.cityWalls) {
+            for (const vKey of p.cityWalls) {
+                const v = gameState.vertices.get(vKey);
+                if (v && !pieces.walls.has(vKey)) {
+                    pieces.placeCityWall(vKey, hexBoard.vertexToWorld(v));
+                }
+            }
+        }
+    }
+
+    // 2. Sync knights
+    const currentKnightIds = new Set();
+    for (const p of gameState.players) {
+        const colorHex = PLAYER_COLORS_3D[p.id];
+        if (p.knights) {
+            for (const k of p.knights) {
+                currentKnightIds.add(k.id);
+                const v = gameState.vertices.get(k.vertexKey);
+                if (v) {
+                    pieces.placeKnight(k.id, hexBoard.vertexToWorld(v), colorHex, k.level, k.active);
+                }
+            }
+        }
+    }
+
+    // 3. Remove displaced/killed knights
+    for (const [kId] of pieces.knights.entries()) {
+        if (!currentKnightIds.has(kId)) {
+            pieces.removeKnight(kId);
+        }
+    }
+}
+
 // ─── SYNC ALL (HUD, HIGHLIGHTS, DISCARD MODAL, BOTS) ──────────────────────────
 function syncAll() {
+    if (gameState && gameState.phase !== Phase.DISCARD) {
+        isBotDiscarding = false;
+    }
     checkAndRevealDiscoveredTiles();
+    syncCKBoardPieces();
     updateHUD();
     syncHighlights();
     handleDiscardPhase();
@@ -1221,7 +1343,9 @@ function updateHUD() {
             const isActive = (idx === gameState.currentPlayerIndex);
             const isMe = (idx === myPlayerIndex);
             const colorHex = '#' + PLAYER_COLORS_3D[idx].toString(16).padStart(6, '0');
-            const unplayedDev = (p.devCards || []).filter(c => !c.played).length;
+            const isCK = (gameState.ruleset === 'cities_knights');
+            const unplayedCards = isCK ? (p.progressCards || []).filter(c => !c.played).length : (p.devCards || []).filter(c => !c.played).length;
+            const totalCardsHeld = (isCK && p.totalCards) ? p.totalCards() : p.totalResources();
             const avatarUrl = getPlayerAvatarUrl(p.avatar, idx);
             const vpScore = p.totalVP();
 
@@ -1237,7 +1361,7 @@ function updateHUD() {
             return `
                 <div class="player-pod player-score ${isActive ? 'active-turn' : ''} ${isMe ? 'is-me' : ''}" 
                      onclick="window.__showPlayerStats(${idx})" 
-                     title="${escapeHtml(p.name)}: ${vpScore} Điểm, ${p.totalResources()} TN, ${unplayedDev} Thẻ PT (Nhấp xem chi tiết)"
+                     title="${escapeHtml(p.name)}: ${vpScore} Điểm, ${totalCardsHeld} Thẻ, ${unplayedCards} Thẻ ${isCK ? 'Tiến Bộ' : 'PT'} (Nhấp xem chi tiết)"
                      style="--player-col:${colorHex};">
                     <div class="player-pod-avatar-wrap">
                         <img src="${avatarUrl}" alt="${escapeHtml(p.name)}" class="player-pod-avatar" />
@@ -1250,14 +1374,14 @@ function updateHUD() {
                             ${isMe ? '<span class="pod-me-tag">Bạn</span>' : ''}
                         </div>
                         <div class="player-pod-stats">
-                            <span class="pod-res-pill" title="${p.totalResources()} Thẻ tài nguyên">
+                            <span class="pod-res-pill" title="${totalCardsHeld} Thẻ bài trên tay">
                                 <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-2h2v2zm0-4H7v-2h2v2zm0-4H7V7h2v2zm4 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2zm4 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"/></svg>
-                                <span>${p.totalResources()}</span>
+                                <span>${totalCardsHeld}</span>
                             </span>
-                            ${unplayedDev > 0 ? `
-                                <span class="pod-dev-pill" title="${unplayedDev} Thẻ phát triển">
+                            ${unplayedCards > 0 ? `
+                                <span class="pod-dev-pill" title="${unplayedCards} Thẻ ${isCK ? 'tiến bộ' : 'phát triển'}">
                                     <svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19 2H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-7 15l-4-4 1.41-1.41L12 14.17l5.59-5.59L19 10l-7 7z"/></svg>
-                                    <span>${unplayedDev}</span>
+                                    <span>${unplayedCards}</span>
                                 </span>
                             ` : ''}
                             ${badgeStr}
@@ -1324,7 +1448,9 @@ function updateHUD() {
         }
     }
 
-    // Current Player's Resources
+    const isCK = (gameState.ruleset === 'cities_knights');
+
+    // Current Player's Resources & Commodities
     if (myPlayer) {
         checkAndAnimateGains(myPlayer);
         setResValue('res-wood', myPlayer.resources['LUMBER'] || 0);
@@ -1333,6 +1459,48 @@ function updateHUD() {
         setResValue('res-sheep', myPlayer.resources['WOOL'] || 0);
         setResValue('res-ore', myPlayer.resources['ORE'] || 0);
         setResValue('res-gold', myPlayer.resources['GOLD'] || 0);
+
+        if (isCK && myPlayer.commodities) {
+            setResValue('res-paper', myPlayer.commodities['PAPER'] || 0);
+            setResValue('res-cloth', myPlayer.commodities['CLOTH'] || 0);
+            setResValue('res-coin', myPlayer.commodities['COIN'] || 0);
+        }
+    }
+
+    // Toggle C&K specific DOM elements visibility
+    document.querySelectorAll('.ck-only').forEach(el => el.classList.toggle('hidden', !isCK));
+    document.querySelectorAll('.base-only').forEach(el => el.classList.toggle('hidden', isCK));
+
+    // Barbarian Fleet Tracker
+    const barbHud = document.getElementById('barbarian-hud');
+    if (barbHud) {
+        barbHud.classList.toggle('hidden', !isCK);
+        if (isCK) {
+            const pos = gameState.barbarianPosition || 0;
+            const posEl = document.getElementById('barbarian-pos-text');
+            if (posEl) posEl.textContent = `${pos}/7`;
+
+            const stepsEl = document.getElementById('barbarian-steps');
+            if (stepsEl) {
+                stepsEl.innerHTML = Array.from({ length: 7 }, (_, i) => {
+                    const stepNum = i + 1;
+                    let cls = 'barbarian-step-dot';
+                    if (stepNum === pos) cls += ' ship-pos';
+                    else if (stepNum < pos) cls += ' passed';
+                    return `<span class="${cls}" title="Bước ${stepNum}/7"></span>`;
+                }).join('');
+            }
+
+            const totalKnights = gameState._calcTotalKnightStrength ? gameState._calcTotalKnightStrength() : 
+                gameState.players.reduce((sum, p) => sum + (p.knights || []).filter(k => k.active).reduce((kSum, k) => kSum + (k.level === 'mighty' ? 3 : (k.level === 'strong' ? 2 : 1)), 0), 0);
+            const totalCities = gameState._calcTotalCities ? gameState._calcTotalCities() : 
+                gameState.players.reduce((sum, p) => sum + (p.placed?.cities?.length || 0), 0);
+
+            const kStrEl = document.getElementById('barbarian-knights-strength');
+            const cCountEl = document.getElementById('barbarian-cities-count');
+            if (kStrEl) kStrEl.textContent = totalKnights;
+            if (cCountEl) cCountEl.textContent = totalCities;
+        }
     }
 
     // Dice Button & Display State
@@ -1363,6 +1531,16 @@ function updateHUD() {
             diceDisplay.style.display = 'none';
         } else if (gameState.lastRoll) {
             diceDisplay.style.display = 'inline-flex';
+            const { d1, d2, total, eventDie } = gameState.lastRoll;
+            let eventStr = '';
+            if (eventDie) {
+                if (eventDie === 'ship') eventStr = ' | 🏴‍☠️ Thuyền';
+                else if (eventDie === 'science') eventStr = ' | 🧪 Cổng Khoa Học';
+                else if (eventDie === 'trade') eventStr = ' | ⚖️ Cổng Thương Mại';
+                else if (eventDie === 'politics') eventStr = ' | 🏛️ Cổng Chính Trị';
+            }
+            diceDisplay.innerHTML = `${DICE_ICON_HTML} ${d1} + ${d2} = ${total}${eventStr}`;
+            diceDisplay.style.color = (total === 7) ? '#ff4d4d' : 'var(--gold)';
         }
     }
 
@@ -1381,20 +1559,41 @@ function updateHUD() {
     setBtnState('btn-ship', canAct && myPlayer.canAfford(BUILD_COST.ship) && myPlayer.stock.ships > 0, currentBuildMode === 'ship');
     setBtnState('btn-settlement', canAct && myPlayer.canAfford(BUILD_COST.settlement) && myPlayer.stock.settlements > 0, currentBuildMode === 'settlement');
     setBtnState('btn-city', canAct && myPlayer.canAfford(BUILD_COST.city) && myPlayer.stock.cities > 0 && myPlayer.placed.settlements.length > 0, currentBuildMode === 'city');
-    setBtnState('btn-dev-buy', canAct && myPlayer.canAfford(BUILD_COST.devCard) && gameState.devCardDeck.length > 0);
+    setBtnState('btn-dev-buy', !isCK && canAct && myPlayer.canAfford(BUILD_COST.devCard) && gameState.devCardDeck.length > 0);
     setBtnState('btn-trade', canAct);
 
-    const devCards = myPlayer.devCards || [];
-    const unplayedCards = devCards.filter(c => !c.played);
-    const devViewBtn = document.getElementById('btn-dev-view');
-    if (devViewBtn) {
-        devViewBtn.textContent = `Thẻ Của Bạn (${unplayedCards.length})`;
+    if (isCK) {
+        const unplayedProgress = (myPlayer.progressCards || []).filter(c => !c.played).length;
+        const progressBtn = document.getElementById('btn-ck-progress');
+        if (progressBtn) {
+            progressBtn.innerHTML = `<svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm0-8c-.83 0-1.5-.67-1.5-1.5S11.17 6 12 6s1.5.67 1.5 1.5S12.83 9 12 9z"/></svg><span class="desktop-only-inline">Thẻ Tiến Bộ (${unplayedProgress})</span><span class="mobile-only-inline">Tiến Bộ (${unplayedProgress})</span>`;
+        }
+
+        const playerCities = myPlayer.placed?.cities || [];
+        const wallsCount = myPlayer.cityWalls?.length || 0;
+        const canWall = canAct && myPlayer.canAfford({ BRICK: 2 }) && wallsCount < 3 && playerCities.length > wallsCount;
+        setBtnState('btn-ck-wall', canWall);
+
+        const canImprove = canAct && playerCities.length > 0;
+        setBtnState('btn-ck-improve', canImprove);
+
+        setBtnState('btn-ck-knight', canAct);
+    } else {
+        const devCards = myPlayer.devCards || [];
+        const unplayedCards = devCards.filter(c => !c.played);
+        const devViewBtn = document.getElementById('btn-dev-view');
+        if (devViewBtn) {
+            devViewBtn.innerHTML = `<svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm0-8c-.83 0-1.5-.67-1.5-1.5S11.17 6 12 6s1.5.67 1.5 1.5S12.83 9 12 9z"/></svg><span class="desktop-only-inline">Thẻ Của Bạn (${unplayedCards.length})</span><span class="mobile-only-inline">Thẻ (${unplayedCards.length})</span>`;
+        }
     }
 
     const tradeBtn = document.getElementById('btn-trade');
     if (tradeBtn) {
         const hasHarbor = myPlayer.harborAccess && myPlayer.harborAccess.size > 0;
-        tradeBtn.textContent = hasHarbor ? 'Đổi Cảng Biển' : 'Đổi Ngân Hàng (4:1)';
+        const tradeIcon = '<svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M4 10h3v7H4zm6.5 0h3v7h-3zM2 19h20v3H2zm15-9h3v7h-3zm-5-9L2 6v2h20V6z"/></svg>';
+        const fullText = hasHarbor ? 'Đổi Cảng Biển' : 'Đổi Ngân Hàng (4:1)';
+        const shortText = hasHarbor ? 'Đổi Cảng' : 'Đổi Hàng';
+        tradeBtn.innerHTML = `${tradeIcon}<span class="desktop-only-inline">${fullText}</span><span class="mobile-only-inline">${shortText}</span>`;
     }
 }
 
@@ -1581,15 +1780,18 @@ function handleDiscardPhase() {
 }
 
 function renderDiscardControls(player) {
-    const required = Math.floor(player.totalResources() / 2);
+    const isCK = (gameState.ruleset === 'cities_knights');
+    const totalCards = (isCK && player.totalCards) ? player.totalCards() : player.totalResources();
+    const limit = player.getHandLimit ? player.getHandLimit() : (7 + (player.cityWalls?.length || 0) * 2);
+    const required = Math.floor(totalCards / 2);
     const infoEl = document.getElementById('discard-info');
     const controlsEl = document.getElementById('discard-controls');
     const statusEl = document.getElementById('discard-count-status');
     const confirmBtn = document.getElementById('btn-confirm-discard');
 
-    if (infoEl) infoEl.textContent = `Bạn có ${player.totalResources()} thẻ (>7). Bạn phải bỏ bớt ${required} thẻ.`;
+    if (infoEl) infoEl.textContent = `Bạn có ${totalCards} thẻ (>${limit}). Bạn phải bỏ bớt ${required} thẻ.`;
 
-    const selected = { LUMBER: 0, BRICK: 0, GRAIN: 0, WOOL: 0, ORE: 0, GOLD: 0 };
+    const selected = { LUMBER: 0, BRICK: 0, GRAIN: 0, WOOL: 0, ORE: 0, GOLD: 0, PAPER: 0, CLOTH: 0, COIN: 0 };
 
     const updateStatus = () => {
         const totalSelected = Object.values(selected).reduce((a, b) => a + b, 0);
@@ -1598,12 +1800,20 @@ function renderDiscardControls(player) {
     };
 
     if (controlsEl) {
-        const names = { LUMBER: 'Gỗ 🪵', BRICK: 'Gạch 🧱', GRAIN: 'Lúa 🌾', WOOL: 'Cừu 🐑', ORE: 'Quặng ⛏️', GOLD: 'Vàng 🪙' };
+        const names = {
+            LUMBER: 'Gỗ 🪵', BRICK: 'Gạch 🧱', GRAIN: 'Lúa 🌾', WOOL: 'Cừu 🐑', ORE: 'Quặng ⛏️', GOLD: 'Vàng 🪙',
+            PAPER: 'Giấy 📜', CLOTH: 'Vải 🧵', COIN: 'Đồng xu 🪙'
+        };
         const resList = ['LUMBER', 'BRICK', 'GRAIN', 'WOOL', 'ORE'];
         if ((player.resources['GOLD'] || 0) > 0) resList.push('GOLD');
+        if (isCK && player.commodities) {
+            ['PAPER', 'CLOTH', 'COIN'].forEach(c => {
+                if ((player.commodities[c] || 0) > 0) resList.push(c);
+            });
+        }
 
         controlsEl.innerHTML = resList.map(r => {
-            const count = player.resources[r] || 0;
+            const count = (['PAPER', 'CLOTH', 'COIN'].includes(r)) ? (player.commodities[r] || 0) : (player.resources[r] || 0);
             return `
                 <div style="background:rgba(0,0,0,0.4); border:1px solid var(--border); border-radius:6px; padding:6px 10px; min-width:65px;">
                     <div style="font-size:0.75rem;">${names[r]} (${count})</div>
@@ -1617,9 +1827,10 @@ function renderDiscardControls(player) {
         }).join('');
 
         resList.forEach(r => {
+            const maxAvailable = (['PAPER', 'CLOTH', 'COIN'].includes(r)) ? (player.commodities[r] || 0) : (player.resources[r] || 0);
             document.getElementById(`add-${r}`)?.addEventListener('click', () => {
                 const cur = Object.values(selected).reduce((a, b) => a + b, 0);
-                if (cur < required && selected[r] < (player.resources[r] || 0)) {
+                if (cur < required && selected[r] < maxAvailable) {
                     selected[r]++;
                     document.getElementById(`val-${r}`).textContent = selected[r];
                     updateStatus();
@@ -1640,7 +1851,11 @@ function renderDiscardControls(player) {
     // Confirm button
     if (confirmBtn) {
         confirmBtn.onclick = () => {
-            performAction({ type: 'discard', playerId: player.id, toDiscard: selected });
+            const cleanToDiscard = {};
+            for (const [k, v] of Object.entries(selected)) {
+                if (v > 0) cleanToDiscard[k] = v;
+            }
+            performAction({ type: 'discard', playerId: player.id, toDiscard: cleanToDiscard });
             discardModal.classList.add('hidden');
         };
     }
@@ -1652,8 +1867,9 @@ function renderDiscardControls(player) {
             const toDiscard = {};
             let count = 0;
             const resOrder = ['LUMBER', 'BRICK', 'GRAIN', 'WOOL', 'ORE', 'GOLD'];
+            if (isCK) resOrder.push('PAPER', 'CLOTH', 'COIN');
             for (const r of resOrder) {
-                const has = player.resources[r] || 0;
+                const has = (['PAPER', 'CLOTH', 'COIN'].includes(r)) ? (player.commodities[r] || 0) : (player.resources[r] || 0);
                 const take = Math.min(has, required - count);
                 if (take > 0) {
                     toDiscard[r] = take;
@@ -2143,7 +2359,12 @@ function setupUIEvents() {
     bindSafeBtn('btn-roll', () => {
         const d1 = Math.floor(Math.random() * 6) + 1;
         const d2 = Math.floor(Math.random() * 6) + 1;
-        performAction({ type: 'roll', d1, d2 });
+        let eventDie = null;
+        if (gameState?.ruleset === 'cities_knights') {
+            const faces = ['ship', 'ship', 'ship', 'science', 'trade', 'politics'];
+            eventDie = faces[Math.floor(Math.random() * faces.length)];
+        }
+        performAction({ type: 'roll', d1, d2, eventDie });
     }, () => {
         if (gameState.phase !== Phase.ROLL) return 'Bạn đã gieo xúc xắc rồi hoặc đang ở giai đoạn khác!';
         return 'Chưa thể tung xúc xắc!';
@@ -2185,6 +2406,71 @@ function setupUIEvents() {
     });
     document.getElementById('btn-close-dev-x')?.addEventListener('click', () => {
         devModal?.classList.add('hidden');
+    });
+
+    // C&K Action Modals & Buttons
+    const improveModal = document.getElementById('ck-improve-modal');
+    document.getElementById('btn-ck-improve')?.addEventListener('click', () => {
+        renderCKImproveModal();
+        improveModal?.classList.remove('hidden');
+    });
+    document.getElementById('btn-close-ck-improve')?.addEventListener('click', () => {
+        improveModal?.classList.add('hidden');
+    });
+    document.getElementById('btn-close-ck-improve-x')?.addEventListener('click', () => {
+        improveModal?.classList.add('hidden');
+    });
+
+    const knightModal = document.getElementById('ck-knight-modal');
+    document.getElementById('btn-ck-knight')?.addEventListener('click', () => {
+        renderCKKnightModal();
+        knightModal?.classList.remove('hidden');
+    });
+    document.getElementById('btn-close-ck-knight')?.addEventListener('click', () => {
+        knightModal?.classList.add('hidden');
+    });
+    document.getElementById('btn-close-ck-knight-x')?.addEventListener('click', () => {
+        knightModal?.classList.add('hidden');
+    });
+
+    const progressModal = document.getElementById('ck-progress-modal');
+    document.getElementById('btn-ck-progress')?.addEventListener('click', () => {
+        renderCKProgressModal();
+        progressModal?.classList.remove('hidden');
+    });
+    document.getElementById('btn-close-ck-progress')?.addEventListener('click', () => {
+        progressModal?.classList.add('hidden');
+    });
+    document.getElementById('btn-close-ck-progress-x')?.addEventListener('click', () => {
+        progressModal?.classList.add('hidden');
+    });
+
+    document.getElementById('btn-ck-wall')?.addEventListener('click', () => {
+        const myPlayer = gameState?.players[myPlayerIndex];
+        if (!myPlayer) return;
+        if (gameState.currentPlayerIndex !== myPlayerIndex || gameState.phase !== Phase.BUILD) {
+            showTurnToast('Chỉ có thể xây tường thành trong lượt xây dựng của bạn!');
+            return;
+        }
+        if (!myPlayer.canAfford({ BRICK: 2 })) {
+            showTurnToast('Không đủ 2 Gạch để xây tường thành!');
+            return;
+        }
+        const cities = myPlayer.placed?.cities || [];
+        const walls = myPlayer.cityWalls || [];
+        const available = cities.filter(vKey => !walls.includes(vKey));
+        if (available.length === 0) {
+            showTurnToast('Tất cả thành phố của bạn đã có tường thành (hoặc bạn chưa có thành phố)!');
+            return;
+        }
+        askBuildConfirmation({
+            title: 'Xác Nhận Xây Tường Thành',
+            actionType: 'Tường Thành Dưới Thành Phố',
+            targetType: 'vertex',
+            vKey: available[0],
+            cost: '2 Gạch',
+            onConfirm: () => performAction({ type: 'ck_build_wall', vertexKey: available[0] })
+        });
     });
 
     // Trade Modal (With Dynamic Harbor Rate Calculation)
@@ -2569,6 +2855,20 @@ function setupUIEvents() {
     const navBtns = rulesModal ? rulesModal.querySelectorAll('.rules-nav-btn') : [];
     const rulesBody = document.getElementById('rules-body');
 
+    function scrollNavTabIntoView(btn) {
+        if (!btn) return;
+        const navBar = btn.closest('.rules-nav');
+        if (!navBar) return;
+        const btnLeft = btn.offsetLeft;
+        const btnWidth = btn.offsetWidth;
+        const navWidth = navBar.clientWidth;
+        const targetLeft = btnLeft - (navWidth / 2) + (btnWidth / 2);
+        navBar.scrollTo({
+            left: Math.max(0, targetLeft),
+            behavior: 'smooth'
+        });
+    }
+
     navBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const targetId = btn.getAttribute('data-target');
@@ -2576,7 +2876,7 @@ function setupUIEvents() {
             if (targetEl && rulesBody) {
                 navBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                scrollNavTabIntoView(btn);
 
                 if (targetId === 'sec-overview') {
                     rulesBody.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2604,7 +2904,7 @@ function setupUIEvents() {
                     const isActive = b.getAttribute('data-target') === id;
                     if (isActive && !b.classList.contains('active')) {
                         b.classList.add('active');
-                        b.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                        scrollNavTabIntoView(b);
                     } else if (!isActive) {
                         b.classList.remove('active');
                     }
@@ -3187,6 +3487,369 @@ window.__playDevCard = (type) => {
     }
 };
 
+// ─── CITIES & KNIGHTS (C&K) MODALS & CONTROLS ────────────────────────────────
+function renderCKImproveModal() {
+    const container = document.getElementById('ck-improve-tracks-container');
+    if (!container) return;
+    const myPlayer = gameState.players[myPlayerIndex];
+    if (!myPlayer) return;
+
+    const tracks = [
+        {
+            key: 'science',
+            name: 'Khoa Học',
+            icon: '🧪',
+            color: '#34d399',
+            comKey: 'PAPER',
+            comName: 'Giấy',
+            comIcon: '📜',
+            names: ['', 'Tu Viện (Đỏ 1-2)', 'Thư Viện (Đỏ 1-3)', 'Cống Dẫn Nước (Aqueduct)', 'Nhà Hát (Đại Đô Thị +2 VP)', 'Đại Học']
+        },
+        {
+            key: 'trade',
+            name: 'Thương Mại',
+            icon: '⚖️',
+            color: '#fbbf24',
+            comKey: 'CLOTH',
+            comName: 'Vải',
+            comIcon: '🧶',
+            names: ['', 'Chợ (Đỏ 1-2)', 'Nhà Buôn (Đỏ 1-3)', 'Hội Thương Nhân (Đổi 2:1)', 'Ngân Hàng (Đại Đô Thị +2 VP)', 'Sàn Giao Dịch Lớn']
+        },
+        {
+            key: 'politics',
+            name: 'Chính Trị',
+            icon: '🏛️',
+            color: '#60a5fa',
+            comKey: 'COIN',
+            comName: 'Đồng Xu',
+            comIcon: '🪙',
+            names: ['', 'Tòa Thị Chính (Đỏ 1-2)', 'Đại Sứ Quán (Đỏ 1-3)', 'Pháo Đài (Mở Hiệp Sĩ Cấp 3)', 'Tòa Án (Đại Đô Thị +2 VP)', 'Đại Hội Đồng']
+        }
+    ];
+
+    const isMyTurn = (gameState.currentPlayerIndex === myPlayerIndex);
+    const hasCity = (myPlayer.placed?.cities?.length || 0) > 0;
+    const canAct = isMyTurn && gameState.phase === Phase.BUILD;
+
+    container.innerHTML = tracks.map(tr => {
+        const curLevel = myPlayer.improvements?.[tr.key] || 0;
+        const nextLevel = curLevel + 1;
+        const isMax = (curLevel >= 5);
+        const myComCount = myPlayer.commodities?.[tr.comKey] || 0;
+        const canAfford = myComCount >= nextLevel;
+        const canUpgrade = canAct && hasCity && !isMax && canAfford;
+
+        const levelDots = Array.from({ length: 5 }, (_, idx) => {
+            const lvl = idx + 1;
+            const reached = lvl <= curLevel;
+            return `<span style="display:inline-block; width:14px; height:14px; border-radius:50%; background:${reached ? tr.color : 'rgba(255,255,255,0.15)'}; border:1.5px solid ${reached ? '#fff' : 'rgba(255,255,255,0.3)'}; box-shadow:${reached ? '0 0 8px ' + tr.color : 'none'};"></span>`;
+        }).join('');
+
+        let btnText = isMax ? 'Đã Đạt Cấp Tối Đa (5/5)' : `Nâng Lên Cấp ${nextLevel} (Cần ${nextLevel} ${tr.comName})`;
+        if (!hasCity && !isMax) btnText = 'Cần ít nhất 1 Thành phố trên bàn cờ';
+        else if (!canAfford && !isMax) btnText = `Thiếu ${tr.comName} (Có ${myComCount}/${nextLevel})`;
+
+        return `
+            <div class="ck-track-card ck-track-${tr.key}">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:1.4rem;">${tr.icon}</span>
+                        <div>
+                            <div style="font-weight:800; font-size:1rem; color:${tr.color};">${tr.name}</div>
+                            <div style="font-size:0.78rem; color:#cbd5e1;">Hàng hóa: ${tr.comIcon} ${tr.comName} (Hiện có: <b>${myComCount}</b>)</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:0.85rem; font-weight:700; color:#fff;">Cấp ${curLevel}/5</div>
+                        <div style="display:flex; gap:4px; margin-top:4px;">${levelDots}</div>
+                    </div>
+                </div>
+                <div style="font-size:0.8rem; color:#94a3b8; background:rgba(0,0,0,0.3); padding:6px 10px; border-radius:4px;">
+                    Hiện tại: <b>${tr.names[curLevel] || 'Chưa nâng cấp'}</b>
+                    ${!isMax ? `<br>Kế tiếp (Cấp ${nextLevel}): <b style="color:${tr.color};">${tr.names[nextLevel]}</b>` : ''}
+                </div>
+                <button class="btn btn-primary" onclick="window.__upgradeTrack('${tr.key}')" 
+                    ${!canUpgrade ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : 'style="background:linear-gradient(135deg, ' + tr.color + ', #0284c7); font-weight:800;"'}>
+                    ${btnText}
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderCKKnightModal() {
+    const container = document.getElementById('ck-knight-actions-container');
+    if (!container) return;
+    const myPlayer = gameState.players[myPlayerIndex];
+    if (!myPlayer) return;
+
+    const isMyTurn = (gameState.currentPlayerIndex === myPlayerIndex);
+    const canAct = isMyTurn && gameState.phase === Phase.BUILD;
+
+    const basicSupply = myPlayer.knightSupply?.basic || 0;
+    const canRecruit = canAct && myPlayer.canAfford({ WOOL: 1, ORE: 1 }) && basicSupply > 0;
+
+    const inactiveKnights = (myPlayer.knights || []).filter(k => !k.active);
+
+    const politicsLevel = myPlayer.improvements?.politics || 0;
+    const promotableKnights = (myPlayer.knights || []).filter(k => {
+        if (k.level === 'basic') return (myPlayer.knightSupply?.strong || 0) > 0;
+        if (k.level === 'strong') return politicsLevel >= 3 && (myPlayer.knightSupply?.mighty || 0) > 0;
+        return false;
+    });
+
+    const activeKnights = (myPlayer.knights || []).filter(k => k.active);
+
+    container.innerHTML = `
+        <!-- Section 1: Chiêu Mộ Hiệp Sĩ -->
+        <div style="background:rgba(15,23,42,0.8); border:1.5px solid rgba(56,189,248,0.4); border-radius:6px; padding:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-weight:800; color:#38bdf8; font-size:0.95rem;">⚔️ Chiêu Mộ Hiệp Sĩ Mới (Bậc 1)</div>
+                <div style="font-size:0.8rem; color:#cbd5e1;">Kho: <b>${basicSupply}/2</b></div>
+            </div>
+            <div style="font-size:0.8rem; color:#94a3b8; margin:4px 0 10px 0;">
+                Chi phí: <b>1 Cừu + 1 Quặng</b>. Đặt hiệp sĩ trên giao điểm nối với đường của bạn.
+            </div>
+            <button class="btn btn-primary" onclick="window.__recruitKnightAuto()" 
+                ${!canRecruit ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : 'style="width:100%; font-weight:800;"'}>
+                ${!canRecruit ? (basicSupply <= 0 ? 'Hết Hiệp Sĩ Thường Trong Kho' : 'Không Đủ Tài Nguyên (1 Cừu + 1 Quặng)') : 'Chiêu Mộ Ngay'}
+            </button>
+        </div>
+
+        <!-- Section 2: Kích Hoạt Hiệp Sĩ -->
+        <div style="background:rgba(15,23,42,0.8); border:1.5px solid rgba(234,179,8,0.4); border-radius:6px; padding:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-weight:800; color:#fbbf24; font-size:0.95rem;">⚡ Kích Hoạt Hiệp Sĩ (${inactiveKnights.length} đang nghỉ)</div>
+                <div style="font-size:0.8rem; color:#cbd5e1;">Chi phí: <b>1 Lúa</b> / hiệp sĩ</div>
+            </div>
+            <div style="font-size:0.8rem; color:#94a3b8; margin:4px 0 10px 0;">
+                Hiệp sĩ được kích hoạt mới có thể bảo vệ Catan khỏi man rợ, xua đuổi cướp và di chuyển.
+            </div>
+            ${inactiveKnights.length === 0 ? '<div style="font-size:0.82rem; color:#64748b; font-style:italic;">Tất cả hiệp sĩ của bạn đã được kích hoạt.</div>' : `
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    ${inactiveKnights.map(k => `
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:6px 10px; border-radius:4px;">
+                            <span style="font-size:0.82rem; color:#fff;">Hiệp sĩ <b>${k.level.toUpperCase()}</b> tại [${k.vertexKey}]</span>
+                            <button class="btn btn-warning btn-sm" onclick="window.__activateKnight('${k.id}')" ${!canAct || !myPlayer.canAfford({ GRAIN: 1 }) ? 'disabled style="opacity:0.5;"' : ''} style="padding:4px 10px; font-weight:700;">
+                                Kích Hoạt (1 Lúa)
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            `}
+        </div>
+
+        <!-- Section 3: Thăng Cấp Hiệp Sĩ -->
+        <div style="background:rgba(15,23,42,0.8); border:1.5px solid rgba(168,85,247,0.4); border-radius:6px; padding:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-weight:800; color:#c084fc; font-size:0.95rem;">⬆️ Thăng Cấp Hiệp Sĩ</div>
+                <div style="font-size:0.8rem; color:#cbd5e1;">Chi phí: <b>1 Cừu + 1 Quặng</b></div>
+            </div>
+            <div style="font-size:0.8rem; color:#94a3b8; margin:4px 0 10px 0;">
+                Bậc 1 (Basic, sức 1) ➔ Bậc 2 (Strong, sức 2) ➔ Bậc 3 (Mighty, sức 3 - cần Chính Trị Cấp 3).
+            </div>
+            ${promotableKnights.length === 0 ? '<div style="font-size:0.82rem; color:#64748b; font-style:italic;">Không có hiệp sĩ nào đủ điều kiện thăng cấp.</div>' : `
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    ${promotableKnights.map(k => `
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:6px 10px; border-radius:4px;">
+                            <span style="font-size:0.82rem; color:#fff;">Hiệp sĩ <b>${k.level.toUpperCase()}</b> tại [${k.vertexKey}]</span>
+                            <button class="btn btn-primary btn-sm" onclick="window.__promoteKnight('${k.id}')" ${!canAct || !myPlayer.canAfford({ WOOL: 1, ORE: 1 }) ? 'disabled style="opacity:0.5;"' : ''} style="padding:4px 10px; font-weight:700;">
+                                Thăng Cấp
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            `}
+        </div>
+
+        <!-- Section 4: Hiệp Sĩ Đã Kích Hoạt -->
+        <div style="background:rgba(15,23,42,0.8); border:1.5px solid rgba(34,197,94,0.4); border-radius:6px; padding:12px;">
+            <div style="font-weight:800; color:#4ade80; font-size:0.95rem;">🛡️ Hiệp Sĩ Đang Trực Chiến (${activeKnights.length} đang kích hoạt)</div>
+            <div style="font-size:0.8rem; color:#94a3b8; margin:4px 0 10px 0;">
+                Tổng sức mạnh phòng thủ đóng góp: <b>${activeKnights.reduce((acc, k) => acc + (k.level === 'mighty' ? 3 : (k.level === 'strong' ? 2 : 1)), 0)}</b>.
+            </div>
+            ${activeKnights.length === 0 ? '<div style="font-size:0.82rem; color:#64748b; font-style:italic;">Chưa có hiệp sĩ nào được kích hoạt.</div>' : `
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    ${activeKnights.map(k => `
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:6px 10px; border-radius:4px;">
+                            <span style="font-size:0.82rem; color:#4ade80;">Hiệp sĩ <b>${k.level.toUpperCase()}</b> tại [${k.vertexKey}] (Sẵn sàng)</span>
+                            <button class="btn btn-ghost btn-sm" onclick="window.__chaseRobber('${k.id}')" ${!canAct ? 'disabled style="opacity:0.5;"' : ''} style="padding:4px 10px; font-size:0.78rem; border-color:#ef4444; color:#fca5a5;">
+                                Đuổi Tên Cướp
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            `}
+        </div>
+    `;
+}
+
+function renderCKProgressModal() {
+    const listEl = document.getElementById('ck-progress-cards-list');
+    if (!listEl) return;
+    const myPlayer = gameState.players[myPlayerIndex];
+    if (!myPlayer) return;
+
+    const unplayedCards = (myPlayer.progressCards || []).filter(c => !c.played);
+    const isMyTurn = (gameState.currentPlayerIndex === myPlayerIndex);
+    const canPlay = isMyTurn && gameState.phase === Phase.BUILD;
+
+    if (unplayedCards.length === 0) {
+        listEl.innerHTML = `
+            <div style="text-align:center; padding:16px 10px;">
+                <div style="font-size:2.8rem; margin-bottom:8px;">📜</div>
+                <div style="font-weight:900; color:#fff; font-size:1.15rem;">Bạn Chưa Có Thẻ Tiến Bộ Nào</div>
+                <div style="font-size:0.85rem; color:#aac4e0; margin-top:6px; max-width:440px; margin-left:auto; margin-right:auto; line-height:1.5;">
+                    Nâng cấp <b>Đô Thị (Khoa học, Thương mại, Chính trị)</b> để có cơ hội rút Thẻ Tiến Bộ khi xúc xắc sự kiện đổ ra Cổng Thành tương ứng!
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    const DECK_THEMES = {
+        science: { color: '#34d399', icon: '🧪', name: 'Khoa Học' },
+        trade:   { color: '#fbbf24', icon: '⚖️', name: 'Thương Mại' },
+        politics:{ color: '#60a5fa', icon: '🏛️', name: 'Chính Trị' }
+    };
+
+    const CARD_TITLES = {
+        alchemist: 'Nhà Giả Kim (Alchemist)',
+        crane: 'Cần Cẩu (Crane)',
+        engineer: 'Kỹ Sư (Engineer)',
+        inventor: 'Nhà Phát Minh (Inventor)',
+        irrigation: 'Thủy Lợi (Irrigation)',
+        medicine: 'Y Học (Medicine)',
+        mining: 'Khai Mỏ (Mining)',
+        printer: 'Nhà In (Printer)',
+        road_building: 'Làm Đường (Road Building)',
+        smith: 'Thợ Rèn (Smith)',
+        commercial_harbor: 'Thương Cảng (Commercial Harbor)',
+        master_merchant: 'Đại Thương Gia (Master Merchant)',
+        merchant: 'Thương Nhân (Merchant)',
+        merchant_fleet: 'Đội Tàu Buôn (Merchant Fleet)',
+        resource_monopoly: 'Độc Quyền Tài Nguyên (Resource Monopoly)',
+        trade_monopoly: 'Độc Quyền Hàng Hóa (Trade Monopoly)',
+        bishop: 'Giám Mục (Bishop)',
+        constitution: 'Hiến Pháp (Constitution)',
+        deserter: 'Kẻ Đào Ngũ (Deserter)',
+        diplomat: 'Nhà Ngoại Giao (Diplomat)',
+        intrigue: 'Mưu Đồ (Intrigue)',
+        saboteur: 'Kẻ Phá Hoại (Saboteur)',
+        spy: 'Điệp Viên (Spy)',
+        warlord: 'Lãnh Chúa (Warlord)',
+        wedding: 'Lễ Cưới (Wedding)'
+    };
+
+    const CARD_DESCS = {
+        alchemist: 'Tự chọn số trên 2 xúc xắc sản xuất trước khi tung!',
+        crane: 'Nâng cấp đô thị giảm 1 hàng hóa (cấp 1 thành miễn phí).',
+        engineer: 'Xây 1 Tường thành hoàn toàn miễn phí!',
+        inventor: 'Hoán đổi 2 đĩa số bất kỳ trên bàn cờ (trừ 2, 6, 8, 12).',
+        irrigation: 'Nhận 2 Lúa cho mỗi ô Đồng bằng kề công trình của bạn.',
+        medicine: 'Lên Thành Phố chỉ với 1 Lúa + 2 Quặng!',
+        mining: 'Nhận 2 Quặng cho mỗi ô Núi kề công trình của bạn.',
+        printer: '+1 Điểm chiến thắng (VP).',
+        road_building: 'Xây 2 Đường hoặc 2 Tàu buồm miễn phí!',
+        smith: 'Thăng cấp tối đa 2 Hiệp sĩ hoàn toàn miễn phí!',
+        commercial_harbor: 'Đưa 1 tài nguyên cho mỗi người chơi khác, mỗi người phải trả lại 1 hàng hóa!',
+        master_merchant: 'Xem bài người có nhiều VP hơn mình, lấy 2 thẻ tùy chọn.',
+        merchant: 'Đặt Thương nhân lên ô đất (+1 VP, đổi 2:1 tài nguyên của ô đó).',
+        merchant_fleet: 'Đổi 2:1 tại ngân hàng với 1 loại tài nguyên trong suốt lượt này.',
+        resource_monopoly: 'Mỗi người chơi khác phải nộp 2 thẻ tài nguyên bạn yêu cầu.',
+        trade_monopoly: 'Mỗi người chơi khác phải nộp 1 hàng hóa bạn yêu cầu.',
+        bishop: 'Di chuyển Tên cướp và cướp thẻ từ tất cả người chơi kề ô mới.',
+        constitution: '+1 Điểm chiến thắng (VP).',
+        deserter: 'Bắt đối thủ gỡ 1 hiệp sĩ, bạn được đặt 1 hiệp sĩ cùng cấp từ kho!',
+        diplomat: 'Gỡ 1 con đường hở của đối thủ hoặc di chuyển đường của mình.',
+        intrigue: 'Đẩy lùi hiệp sĩ đối phương trên giao điểm nối với đường của bạn.',
+        saboteur: 'Mỗi người có bằng hoặc nhiều VP hơn bạn phải bỏ nửa số bài.',
+        spy: 'Xem bài thẻ tiến bộ của đối thủ và cướp 1 thẻ!',
+        warlord: 'Kích hoạt toàn bộ hiệp sĩ của bạn hoàn toàn miễn phí!',
+        wedding: 'Mỗi người chơi có nhiều VP hơn bạn phải tặng bạn 2 thẻ tự chọn.'
+    };
+
+    listEl.innerHTML = `
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
+            ${unplayedCards.map(c => {
+                const theme = DECK_THEMES[c.deck] || { color: '#fbbf24', icon: '📜', name: c.deck || 'Tiến Bộ' };
+                const title = CARD_TITLES[c.id] || c.id;
+                const desc = CARD_DESCS[c.id] || 'Thẻ bài tiến bộ đặc biệt Cities & Knights.';
+                return `
+                    <div style="background:rgba(15,23,42,0.85); border:1.5px solid ${theme.color}; border-radius:8px; padding:12px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 4px 12px rgba(0,0,0,0.5);">
+                        <div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                <span style="font-size:0.75rem; font-weight:700; color:${theme.color}; background:rgba(0,0,0,0.4); padding:2px 8px; border-radius:4px; border:1px solid ${theme.color}66;">
+                                    ${theme.icon} ${theme.name}
+                                </span>
+                            </div>
+                            <div style="font-weight:800; color:#fff; font-size:0.95rem; margin-bottom:6px;">${title}</div>
+                            <div style="font-size:0.8rem; color:#cbd5e1; line-height:1.4; margin-bottom:12px;">${desc}</div>
+                        </div>
+                        <button class="btn btn-primary" onclick="window.__playCKProgress('${c.id}')" ${!canPlay ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : 'style="width:100%; font-weight:800; background:linear-gradient(135deg, ' + theme.color + ', #0284c7);"'}>
+                            ${canPlay ? 'Đánh Thẻ Này' : (isMyTurn ? 'Chỉ dùng trong giai đoạn xây dựng' : 'Chưa đến lượt của bạn')}
+                        </button>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+}
+
+window.__upgradeTrack = (track) => {
+    performAction({ type: 'ck_improve', track });
+    renderCKImproveModal();
+};
+
+window.__recruitKnightAuto = () => {
+    const myPlayer = gameState?.players[myPlayerIndex];
+    if (!myPlayer) return;
+    const validVertices = [];
+    for (const [vKey, v] of gameState.vertices.entries()) {
+        if (!v.hasLand || v.building !== null) continue;
+        const knightAtV = (CKKnightEngine?.getKnightAtVertex) ? CKKnightEngine.getKnightAtVertex(vKey, gameState) : null;
+        if (knightAtV) continue;
+        const isConnected = [...v.adjacentEdges].some(eKey => {
+            const edge = gameState.edges.get(eKey);
+            return edge?.piece?.playerId === myPlayer.id;
+        });
+        if (isConnected) validVertices.push(vKey);
+    }
+    if (validVertices.length === 0) {
+        alert('Không có giao điểm hợp lệ để chiêu mộ hiệp sĩ (phải kề đường hoặc tàu của bạn)!');
+        return;
+    }
+    document.getElementById('ck-knight-modal')?.classList.add('hidden');
+    askBuildConfirmation({
+        title: 'Chiêu Mộ Hiệp Sĩ',
+        actionType: 'Hiệp Sĩ Bậc 1',
+        targetType: 'vertex',
+        vKey: validVertices[0],
+        cost: '1 Cừu, 1 Quặng',
+        onConfirm: () => performAction({ type: 'ck_recruit_knight', vKey: validVertices[0] })
+    });
+};
+
+window.__activateKnight = (knightId) => {
+    performAction({ type: 'ck_activate_knight', knightId });
+    renderCKKnightModal();
+};
+
+window.__promoteKnight = (knightId) => {
+    performAction({ type: 'ck_promote_knight', knightId });
+    renderCKKnightModal();
+};
+
+window.__chaseRobber = (knightId) => {
+    performAction({ type: 'ck_chase_robber', knightId });
+    renderCKKnightModal();
+};
+
+window.__playCKProgress = (cardId) => {
+    document.getElementById('ck-progress-modal')?.classList.add('hidden');
+    performAction({ type: 'ck_play_progress', cardId });
+};
+
 function setupBuildBtn(id, mode, label, costStr) {
     const btn = document.getElementById(id);
     if (!btn) return;
@@ -3250,6 +3913,7 @@ function setupBuildBtn(id, mode, label, costStr) {
 
 // ─── AUTOMATED BOT TURNS (AI PLAYERS) ─────────────────────────────────────────
 let botActionTimer = null;
+let isBotDiscarding = false;
 
 function triggerBotIfNeeded() {
     clearTimeout(botActionTimer);
@@ -3315,19 +3979,30 @@ function triggerBotIfNeeded() {
         const pid = gameState.discardPending[0];
         const playerToDiscard = gameState.players[pid];
         if (playerToDiscard && playerToDiscard.isBot && myPlayerIndex === 0) {
-            const need = Math.floor(playerToDiscard.totalResources() / 2);
+            if (isBotDiscarding) return;
+            const isCK = (gameState.ruleset === 'cities_knights');
+            const totalCards = (isCK && playerToDiscard.totalCards) ? playerToDiscard.totalCards() : playerToDiscard.totalResources();
+            const required = Math.floor(totalCards / 2);
             const toDiscard = {};
             let count = 0;
-            for (const r of ['LUMBER', 'BRICK', 'GRAIN', 'WOOL', 'ORE', 'GOLD']) {
-                const has = playerToDiscard.resources[r] || 0;
-                const take = Math.min(has, need - count);
+            const resOrder = ['LUMBER', 'BRICK', 'GRAIN', 'WOOL', 'ORE', 'GOLD'];
+            if (isCK) resOrder.push('PAPER', 'CLOTH', 'COIN');
+            for (const r of resOrder) {
+                const has = (['PAPER', 'CLOTH', 'COIN'].includes(r)) ? (playerToDiscard.commodities?.[r] || 0) : (playerToDiscard.resources?.[r] || 0);
+                const take = Math.min(has, required - count);
                 if (take > 0) {
                     toDiscard[r] = take;
                     count += take;
                 }
-                if (count >= need) break;
+                if (count >= required) break;
             }
-            performAction({ type: 'discard', playerId: pid, toDiscard });
+            if (count === required) {
+                isBotDiscarding = true;
+                setTimeout(() => {
+                    isBotDiscarding = false;
+                    performAction({ type: 'discard', playerId: pid, toDiscard });
+                }, 500);
+            }
         }
         return;
     }

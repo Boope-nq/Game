@@ -161,6 +161,34 @@ module.exports = (io) => {
             }
         });
 
+        socket.on('room:update_settings', ({ roomId, win_vp, scenario, turn_timer }) => {
+            const str = roomId ? String(roomId).trim() : '';
+            const room = db.rooms.findByCode(str.toUpperCase()) || (/^\d+$/.test(str) ? db.rooms.findById(parseInt(str, 10)) : null);
+            if (room && (room.host_id === socket.userId || !room.host_id || String(room.host_id) === String(socket.userId))) {
+                const updates = {};
+                if (win_vp !== undefined) updates.win_vp = parseInt(win_vp, 10);
+                if (scenario !== undefined) updates.scenario = scenario;
+                if (turn_timer !== undefined) updates.turn_timer = parseInt(turn_timer, 10);
+                db.rooms.update(room.id, updates);
+                const updatedRoom = db.rooms.getRoomWithPlayers(room.id);
+                io.to(`room_${room.id}`).emit('room:update', updatedRoom);
+                io.to(`room_${room.code}`).emit('room:update', updatedRoom);
+                broadcastRoomList(io);
+            }
+        });
+
+        socket.on('room:transfer_host', ({ roomId, targetUserId }) => {
+            const str = roomId ? String(roomId).trim() : '';
+            const room = db.rooms.findByCode(str.toUpperCase()) || (/^\d+$/.test(str) ? db.rooms.findById(parseInt(str, 10)) : null);
+            if (room && (room.host_id === socket.userId || !room.host_id || String(room.host_id) === String(socket.userId))) {
+                db.rooms.update(room.id, { host_id: targetUserId });
+                const updatedRoom = db.rooms.getRoomWithPlayers(room.id);
+                io.to(`room_${room.id}`).emit('room:update', updatedRoom);
+                io.to(`room_${room.code}`).emit('room:update', updatedRoom);
+                broadcastRoomList(io);
+            }
+        });
+
         socket.on('chat:room', ({ roomId, text }) => {
             if (!text || !text.trim()) return;
             const user = db.users.findById(socket.userId);

@@ -258,9 +258,16 @@ async function loadFriends() {
                 <div class="friend-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#0c3258; font-weight:700;">${escapeHtml(f.username)}</div>
                 <div style="font-size:0.75rem; color:#0369a1; font-weight:600;">ELO ${f.elo || 1000}</div>
             </div>
+            <button class="btn btn-sm btn-remove-friend" data-id="${f.id}" onclick="window.removeFriend(${f.id}, '${escapeHtml(f.username)}')" style="padding:2px 7px; font-size:0.72rem; background:#fee2e2; border:1px solid #fca5a5; color:#dc2626; font-weight:bold; border-radius:4px; cursor:pointer;" title="Xóa bạn">✕</button>
         </div>
     `).join('');
 }
+
+window.removeFriend = async (userId, username) => {
+    if (!confirm(`Bạn có chắc muốn xóa bạn với ${username}?`)) return;
+    await authFetch(`/api/friends/${userId}`, { method: 'DELETE' });
+    loadFriends();
+};
 
 window.inviteFriendToRoom = async (friendId, friendName) => {
     try {
@@ -435,7 +442,7 @@ function renderRooms(rooms) {
                     </div>
                     <div class="room-meta-row">
                         ${ICONS.map}
-                        <span>Bản đồ: ${escapeHtml(r.scenario === 'voyages' ? 'Voyages of Discovery' : (r.scenario || 'Voyages of Discovery'))}</span>
+                        <span>Bản đồ: ${escapeHtml(r.scenario === 'cities_knights' ? 'Thành phố & Hiệp sĩ (Cities & Knights)' : (r.scenario === 'voyages' ? 'Voyages of Discovery' : (r.scenario || 'Voyages of Discovery')))}</span>
                     </div>
                     <div class="room-meta-row">
                         ${ICONS.crown}
@@ -636,6 +643,20 @@ function setupEvents() {
     const navBtns = document.querySelectorAll('.rules-nav-btn');
     const rulesBody = document.getElementById('rules-body');
 
+    function scrollNavTabIntoView(btn) {
+        if (!btn) return;
+        const navBar = btn.closest('.rules-nav');
+        if (!navBar) return;
+        const btnLeft = btn.offsetLeft;
+        const btnWidth = btn.offsetWidth;
+        const navWidth = navBar.clientWidth;
+        const targetLeft = btnLeft - (navWidth / 2) + (btnWidth / 2);
+        navBar.scrollTo({
+            left: Math.max(0, targetLeft),
+            behavior: 'smooth'
+        });
+    }
+
     navBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const targetId = btn.getAttribute('data-target');
@@ -643,7 +664,7 @@ function setupEvents() {
             if (targetEl && rulesBody) {
                 navBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                scrollNavTabIntoView(btn);
 
                 if (targetId === 'sec-overview') {
                     rulesBody.scrollTo({ top: 0, behavior: 'smooth' });
@@ -672,7 +693,7 @@ function setupEvents() {
                     const isActive = b.getAttribute('data-target') === id;
                     if (isActive && !b.classList.contains('active')) {
                         b.classList.add('active');
-                        b.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                        scrollNavTabIntoView(b);
                     } else if (!isActive) {
                         b.classList.remove('active');
                     }

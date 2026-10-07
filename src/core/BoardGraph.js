@@ -324,10 +324,12 @@ export function calcLongestTradeRoute(vertices, edges, playerId) {
         }
       }
 
-      // Kiểm tra đối thủ chặn tại vertex trung gian (không phải vertex đầu)
+      // Kiểm tra đối thủ chặn tại vertex trung gian (không phải vertex đầu):
+      // Công trình đối thủ HOẶC Hiệp sĩ đối phương chặn đường
       const otherVertex = edge.vertices.find(vk => vk !== currentVertexKey);
       const otherV = vertices.get(otherVertex);
-      if (otherV?.building && otherV.building.playerId !== playerId) continue; // bị ngắt
+      if (otherV?.building && otherV.building.playerId !== playerId) continue; // bị ngắt bởi công trình
+      if (otherV?.knight && otherV.knight.playerId !== playerId) continue; // bị ngắt bởi hiệp sĩ đối phương
 
       visitedEdges.add(edgeKey);
       dfs(otherVertex, edgeKey, length + 1);

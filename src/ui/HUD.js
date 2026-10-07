@@ -5,6 +5,7 @@
 
 import { ResourceType, ALL_RESOURCES } from '../entities/Player.js';
 import { Phase, BUILD_COST }           from '../gameplay/GameState.js';
+import { CKRulesPanel }               from './CKRulesPanel.js';
 
 export const MONO_ICONS = {
   BRICK: `<svg class="mono-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm-9 2v3H5V6h5zm2 0h7v3h-7V6zm7 5v3h-7v-3h7zm-9 0v3H5v-3h5zm-5 5h7v3H5v-3zm9 3v-3h7v3h-7z"/></svg>`,
@@ -88,6 +89,7 @@ export class HUD {
         </div>
 
         <div id="hud-top-actions">
+          <button id="btn-toggle-rules" class="btn btn-touch" style="font-size:0.82rem; font-weight:bold; background:#0284c7; color:#fff; border-radius:6px; padding:4px 10px; margin-right:4px;" title="Tra cứu luật chơi C&K">📜 Luật chơi</button>
           <button id="btn-nav-center" class="btn btn-icon btn-touch" title="Căn giữa bản đồ">${MONO_ICONS.COMPASS}</button>
           <button id="btn-toggle-players" class="btn btn-icon btn-touch" title="Bảng điểm">
             ${MONO_ICONS.PLAYERS} <span id="hud-badge-vp" class="badge-pill">0</span>
@@ -352,6 +354,13 @@ export class HUD {
       }
     };
 
+    // Rules Panel Toggle
+    this.rulesPanel = new CKRulesPanel();
+    const rulesBtn = document.getElementById('btn-toggle-rules');
+    if (rulesBtn) {
+      rulesBtn.onclick = () => this.rulesPanel.toggle();
+    }
+
     // Navigation & Modals Toggle
     document.getElementById('btn-nav-center').onclick = () => {
       window._resetCamera?.();
@@ -557,27 +566,54 @@ export class HUD {
     const tradeBtn = document.getElementById('btn-open-trade');
     if (tradeBtn) tradeBtn.disabled = gs.phase !== Phase.BUILD;
 
-    // Compact Resource Bar Chips
+    // Compact Resource Bar Chips (Hỗ trợ cả Hàng Hóa C&K)
     const chipsList = document.getElementById('res-chips-list');
     if (chipsList) {
-      chipsList.innerHTML = ALL_RESOURCES.map(r => `
+      let html = ALL_RESOURCES.map(r => `
         <div class="res-chip ${cp.resources[r] > 0 ? 'has-res' : ''}">
           <span class="res-icon">${RES_EMOJI[r]}</span>
           <span class="res-num">${cp.resources[r]}</span>
         </div>
       `).join('');
+
+      // Hiển thị 3 loại Hàng Hóa nếu đang chơi Cities & Knights
+      if (cp.commodities) {
+        const comLabels = { PAPER: 'Giấy', CLOTH: 'Vải', COIN: 'Xu' };
+        const comColors = { PAPER: '#10b981', CLOTH: '#f59e0b', COIN: '#3b82f6' };
+        for (const [cKey, cVal] of Object.entries(cp.commodities)) {
+          html += `
+            <div class="res-chip ${cVal > 0 ? 'has-res' : ''}" style="border: 1px solid ${comColors[cKey]};">
+              <span class="res-icon" style="color:${comColors[cKey]}; font-size:11px; font-weight:bold;">${comLabels[cKey]}</span>
+              <span class="res-num">${cVal}</span>
+            </div>
+          `;
+        }
+      }
+
+      chipsList.innerHTML = html;
     }
 
     const stockBadge = document.getElementById('stock-chips-badge');
     if (stockBadge) {
-      const activeDevs = cp.devCards.filter(c => !c.played).length;
-      stockBadge.innerHTML = `
+      const activeDevs = cp.devCards?.filter(c => !c.played).length || 0;
+      let badgeHtml = `
         <span class="stock-item">${MONO_ICONS.SETTLEMENT} ${cp.stock.settlements}</span>
         <span class="stock-item">${MONO_ICONS.CITY} ${cp.stock.cities}</span>
         <span class="stock-item">${MONO_ICONS.ROAD} ${cp.stock.roads}</span>
         <span class="stock-item">${MONO_ICONS.SHIP} ${cp.stock.ships}</span>
         ${activeDevs > 0 ? `<span class="stock-item-highlight">${MONO_ICONS.CARD} ${activeDevs}</span>` : ''}
       `;
+
+      // C&K badges: Tường thành, Hiệp sĩ, Huy hiệu Người bảo vệ
+      if (gs.ruleset === 'cities_knights') {
+        badgeHtml += `
+          <span class="stock-item" title="Tường thành">🧱 ${cp.cityWalls?.length || 0}/3</span>
+          <span class="stock-item" title="Hiệp sĩ">🛡️ ${cp.knights?.length || 0}</span>
+          ${cp.defenderTokens > 0 ? `<span class="stock-item-highlight" title="Huy hiệu Người bảo vệ Catan">🏆 ${cp.defenderTokens}</span>` : ''}
+        `;
+      }
+
+      stockBadge.innerHTML = badgeHtml;
     }
 
     // Players List in Drawer
@@ -591,8 +627,10 @@ export class HUD {
           </div>
           <div class="pcard-stats">
             <span class="pvp">${p.totalVP()} VP</span>
-            <span class="pres">${MONO_ICONS.CARD} ${p.totalResources()}</span>
+            <span class="pres">${MONO_ICONS.CARD} ${p.totalCards ? p.totalCards() : p.totalResources()}</span>
             ${p.hasLongestRoad  ? `<span class="badge-flag" title="Tuyến dài nhất">${MONO_ICONS.ROAD} Tuyến dài</span>` : ''}
+            ${p.hasMerchant     ? `<span class="badge-flag" title="Thương nhân (+1 VP)">👑 Thương nhân</span>` : ''}
+            ${p.defenderTokens > 0 ? `<span class="badge-flag" title="Huy hiệu Người bảo vệ">🏆 ${p.defenderTokens}</span>` : ''}
             ${p.hasLargestArmy  ? `<span class="badge-flag" title="Quân đội lớn nhất">${MONO_ICONS.KNIGHT} Đạo quân</span>` : ''}
             ${p.discoveredIslands?.size > 0 ? `<span class="badge-flag" title="Đảo đã khám phá">${MONO_ICONS.SHIP} ${p.discoveredIslands.size} đảo</span>` : ''}
           </div>

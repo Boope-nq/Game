@@ -11,6 +11,8 @@ export class Pieces3D {
         this.cities = new Map();
         this.roads = new Map();
         this.ships = new Map();
+        this.knights = new Map();
+        this.walls = new Map();
         
         this.robberMesh = null;
         this.pirateMesh = null;
@@ -22,6 +24,7 @@ export class Pieces3D {
         this.chimneyMat = new THREE.MeshStandardMaterial({ color: 0x424650, roughness: 0.9 });
         this.goldAccentMat = new THREE.MeshStandardMaterial({ color: 0xffd700, roughness: 0.3, metalness: 0.7 });
         this.sailClothMat = new THREE.MeshStandardMaterial({ color: 0xf7f5eb, roughness: 0.6, side: THREE.DoubleSide });
+        this.wallMat = new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 0.8 });
     }
 
     clearAll() {
@@ -31,6 +34,8 @@ export class Pieces3D {
         this.cities.clear();
         this.roads.clear();
         this.ships.clear();
+        this.knights.clear();
+        this.walls.clear();
         this.robberMesh = null;
         this.pirateMesh = null;
     }
@@ -358,6 +363,107 @@ export class Pieces3D {
             this.piecesGroup.add(this.pirateMesh);
         }
         this.pirateMesh.position.set(worldPos.x, 0.05, worldPos.z);
+    }
+
+    // ─── C&K: KNIGHTS & CITY WALLS ──────────────────────────────────────────────
+    createKnight(colorHex, level = 'basic', active = false) {
+        const group = new THREE.Group();
+        const baseMat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.4 });
+        const armorMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.6, roughness: 0.3 });
+        const crestMat = active 
+            ? new THREE.MeshStandardMaterial({ color: 0xffd700, emissive: 0xf59e0b, emissiveIntensity: 0.5, metalness: 0.8, roughness: 0.2 })
+            : new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.8 });
+
+        // Round Shield / Plinth base
+        const baseGeo = new THREE.CylinderGeometry(0.26, 0.3, 0.12, 16);
+        const base = new THREE.Mesh(baseGeo, baseMat);
+        base.position.y = 0.06;
+        base.castShadow = true;
+
+        // Armored Torso
+        const bodyGeo = new THREE.CylinderGeometry(0.16, 0.2, 0.3, 12);
+        const body = new THREE.Mesh(bodyGeo, armorMat);
+        body.position.y = 0.26;
+        body.castShadow = true;
+
+        // Helmet
+        const headGeo = new THREE.SphereGeometry(0.14, 12, 12);
+        const head = new THREE.Mesh(headGeo, armorMat);
+        head.position.y = 0.46;
+        head.castShadow = true;
+
+        // Level Rings / Helm Crest
+        const ringCount = level === 'mighty' ? 3 : (level === 'strong' ? 2 : 1);
+        for (let i = 0; i < ringCount; i++) {
+            const ringGeo = new THREE.TorusGeometry(0.18 + i * 0.03, 0.025, 8, 16);
+            const ring = new THREE.Mesh(ringGeo, crestMat);
+            ring.rotation.x = Math.PI / 2;
+            ring.position.y = 0.12 + i * 0.06;
+            group.add(ring);
+        }
+
+        // Helmet Plume / Crest if active
+        if (active) {
+            const plumeGeo = new THREE.BoxGeometry(0.04, 0.16, 0.18);
+            const plume = new THREE.Mesh(plumeGeo, crestMat);
+            plume.position.set(0, 0.56, 0);
+            group.add(plume);
+        }
+
+        group.add(base, body, head);
+        return group;
+    }
+
+    placeKnight(knightId, worldPos, colorHex, level = 'basic', active = false) {
+        if (this.knights.has(knightId)) {
+            const old = this.knights.get(knightId);
+            this.piecesGroup.remove(old);
+            this.knights.delete(knightId);
+        }
+        const mesh = this.createKnight(colorHex, level, active);
+        mesh.position.set(worldPos.x, 0.44, worldPos.z);
+        this.piecesGroup.add(mesh);
+        this.knights.set(knightId, mesh);
+    }
+
+    removeKnight(knightId) {
+        if (this.knights.has(knightId)) {
+            const mesh = this.knights.get(knightId);
+            this.piecesGroup.remove(mesh);
+            this.knights.delete(knightId);
+        }
+    }
+
+    createCityWall() {
+        const group = new THREE.Group();
+        // Crenellated stone wall ring
+        const baseGeo = new THREE.BoxGeometry(0.92, 0.18, 0.88);
+        const base = new THREE.Mesh(baseGeo, this.wallMat);
+        base.position.y = 0.09;
+        base.castShadow = true;
+
+        // 4 corner battlements
+        const cornerGeo = new THREE.BoxGeometry(0.18, 0.12, 0.18);
+        const offsets = [
+            [-0.37, -0.35], [0.37, -0.35],
+            [-0.37, 0.35], [0.37, 0.35]
+        ];
+        offsets.forEach(([ox, oz]) => {
+            const battlement = new THREE.Mesh(cornerGeo, this.wallMat);
+            battlement.position.set(ox, 0.22, oz);
+            group.add(battlement);
+        });
+
+        group.add(base);
+        return group;
+    }
+
+    placeCityWall(vertexKey, worldPos) {
+        if (this.walls.has(vertexKey)) return;
+        const mesh = this.createCityWall();
+        mesh.position.set(worldPos.x, 0.44, worldPos.z);
+        this.piecesGroup.add(mesh);
+        this.walls.set(vertexKey, mesh);
     }
 
     update(delta) {
